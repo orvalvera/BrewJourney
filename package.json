@@ -1,0 +1,13 @@
+{
+  "name": "brewjourney",
+  "version": "1.0.0",
+  "description": "Pasaporte de cafeterías",
+  "type": "module",
+  "main": "BrewJourney/demo/demo.js",
+  "scripts": {
+    "demo": "node BrewJourney/demo/demo.js"
+  },
+  "keywords": ["cafe", "stamps", "design-patterns"],
+  "author": "Orval Vera, Karla Nava, Jesus Escobar, Ximena Garcia",
+  "license": "ISC"
+}

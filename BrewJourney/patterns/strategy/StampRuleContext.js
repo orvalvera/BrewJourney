@@ -1,0 +1,62 @@
+import { BasicStampRule } from './BasicStampRule.js';
+
+/**
+ * StampRuleContext - Contexto para el patrón Strategy
+ * 
+ * Esta clase permite cambiar dinámicamente la estrategia de sellos
+ * y mantiene un registro de las reglas aplicadas
+ */
+export class StampRuleContext {
+  constructor(defaultRule = null) {
+    this.currentRule = defaultRule || new BasicStampRule();
+    this.ruleHistory = [];
+  }
+
+  /**
+   * Establece la estrategia de sellos actual
+   * @param {IStampRule} rule - Nueva regla a aplicar
+   */
+  setRule(rule) {
+    if (!rule || typeof rule.applyVisit !== 'function') {
+      throw new Error('La regla debe implementar el método applyVisit');
+    }
+    this.ruleHistory.push({
+      rule: this.currentRule.getName(),
+      changedAt: new Date()
+    });
+    this.currentRule = rule;
+  }
+
+  /**
+   * Obtiene la regla actual
+   */
+  getRule() {
+    return this.currentRule;
+  }
+
+  /**
+   * Aplica la visita usando la regla actual
+   * @param {Object} context - Contexto de la visita
+   * @param {StampPassport} stampPassport - Pasaporte del usuario
+   */
+  applyVisit(context, stampPassport) {
+    return this.currentRule.applyVisit(context, stampPassport);
+  }
+
+  /**
+   * Obtiene información sobre la regla actual
+   */
+  getRuleInfo() {
+    return {
+      name: this.currentRule.getName(),
+      description: this.currentRule.getDescription()
+    };
+  }
+
+  /**
+   * Obtiene el historial de cambios de regla
+   */
+  getRuleHistory() {
+    return [...this.ruleHistory];
+  }
+}

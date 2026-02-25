@@ -1,0 +1,496 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "name": "Samuel Orval",
+      "email": "orval@brewjourney.com",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Samuel",
+      "createdAt": "2026-02-24T23:05:53.005Z"
+    },
+    {
+      "id": "u2",
+      "name": "Karla Nava",
+      "email": "karla@brewjourney.com",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Karla",
+      "createdAt": "2026-02-24T23:05:53.021Z"
+    },
+    {
+      "id": "u3",
+      "name": "Ximena García",
+      "email": "ximena@brewjourney.com",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Ximena",
+      "createdAt": "2026-02-24T23:05:53.021Z"
+    },
+    {
+      "id": "u4",
+      "name": "Jesús Escobar",
+      "email": "jesus@brewjourney.com",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Jesus",
+      "createdAt": "2026-02-24T23:05:53.021Z"
+    }
+  ],
+  "cafes": [
+    {
+      "id": "c1",
+      "name": "Starbucks",
+      "location": "Av. Temozon Norte #123",
+      "image": "https://images.unsplash.com/photo-1453614512568-c4024d13c247?w=400",
+      "rating": 4.5,
+      "totalReviews": 128,
+      "description": "La cadena de café más famosa del mundo, con ambiente acogedor y WiFi gratuito."
+    },
+    {
+      "id": "c2",
+      "name": "The Italian Coffee",
+      "location": "Plaza Altabrisa Local 45",
+      "image": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400",
+      "rating": 4.8,
+      "totalReviews": 89,
+      "description": "Auténtico café italiano con los mejores espressos de la ciudad."
+    },
+    {
+      "id": "c3",
+      "name": "Café Punta del Cielo",
+      "location": "Centro Histórico #78",
+      "image": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400",
+      "rating": 4.2,
+      "totalReviews": 156,
+      "description": "Café 100% mexicano de altura, cultivado en Chiapas."
+    },
+    {
+      "id": "c4",
+      "name": "Cielito Querido",
+      "location": "Plaza Fiesta Local 12",
+      "image": "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400",
+      "rating": 5,
+      "totalReviews": 204,
+      "description": "Café mexicano con pan dulce tradicional y ambiente nostálgico."
+    },
+    {
+      "id": "c5",
+      "name": "Café Britt",
+      "location": "Paseo Montejo #456",
+      "image": "https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400",
+      "rating": 4.4,
+      "totalReviews": 67,
+      "description": "Café gourmet de Costa Rica con granos de alta calidad."
+    }
+  ],
+  "products": [
+    {
+      "id": "p1",
+      "name": "Cappuccino",
+      "price": 4.5,
+      "type": "beverage",
+      "size": "medium",
+      "icon": "fa-mug-hot"
+    },
+    {
+      "id": "p2",
+      "name": "Latte",
+      "price": 4,
+      "type": "beverage",
+      "size": "medium",
+      "icon": "fa-mug-hot"
+    },
+    {
+      "id": "p3",
+      "name": "Espresso",
+      "price": 2.5,
+      "type": "beverage",
+      "size": "small",
+      "icon": "fa-mug-hot"
+    },
+    {
+      "id": "p4",
+      "name": "Americano",
+      "price": 3,
+      "type": "beverage",
+      "size": "medium",
+      "icon": "fa-mug-hot"
+    },
+    {
+      "id": "p5",
+      "name": "Mocha",
+      "price": 5,
+      "type": "beverage",
+      "size": "large",
+      "icon": "fa-mug-hot"
+    },
+    {
+      "id": "p6",
+      "name": "Frappuccino",
+      "price": 5.5,
+      "type": "beverage",
+      "size": "large",
+      "icon": "fa-blender"
+    },
+    {
+      "id": "p7",
+      "name": "Croissant",
+      "price": 3,
+      "type": "snack",
+      "flavor": "butter",
+      "icon": "fa-bread-slice"
+    },
+    {
+      "id": "p8",
+      "name": "Croissant Almendra",
+      "price": 3.5,
+      "type": "snack",
+      "flavor": "almond",
+      "icon": "fa-bread-slice"
+    },
+    {
+      "id": "p9",
+      "name": "Tiramisu",
+      "price": 6,
+      "type": "dessert",
+      "typeCategory": "italian",
+      "icon": "fa-cake-candles"
+    },
+    {
+      "id": "p10",
+      "name": "Cheesecake",
+      "price": 5.5,
+      "type": "dessert",
+      "typeCategory": "sweet",
+      "icon": "fa-cake-candles"
+    },
+    {
+      "id": "p11",
+      "name": "Brownie",
+      "price": 4,
+      "type": "dessert",
+      "typeCategory": "chocolate",
+      "icon": "fa-cookie"
+    },
+    {
+      "id": "p12",
+      "name": "Galletas Choco",
+      "price": 2,
+      "type": "snack",
+      "flavor": "chocolate",
+      "icon": "fa-cookie-bite"
+    },
+    {
+      "id": "p13",
+      "name": "Taza BrewJourney",
+      "price": 15,
+      "type": "merchandise",
+      "category": "mug",
+      "icon": "fa-mug-saucer"
+    },
+    {
+      "id": "p14",
+      "name": "Tumbler 500ml",
+      "price": 22,
+      "type": "merchandise",
+      "category": "tumbler",
+      "icon": "fa-bottle-water"
+    }
+  ],
+  "stamps": [
+    {
+      "id": "s1",
+      "userId": "u1",
+      "cafeId": "c1",
+      "date": "2026-02-24",
+      "type": "regular"
+    },
+    {
+      "id": "s2",
+      "userId": "u1",
+      "cafeId": "c1",
+      "date": "2026-02-23",
+      "type": "regular"
+    },
+    {
+      "id": "s3",
+      "userId": "u1",
+      "cafeId": "c1",
+      "date": "2026-02-22",
+      "type": "regular"
+    },
+    {
+      "id": "s4",
+      "userId": "u1",
+      "cafeId": "c1",
+      "date": "2026-02-21",
+      "type": "regular"
+    },
+    {
+      "id": "s5",
+      "userId": "u1",
+      "cafeId": "c1",
+      "date": "2026-02-20",
+      "type": "regular"
+    },
+    {
+      "id": "s6",
+      "userId": "u1",
+      "cafeId": "c2",
+      "date": "2026-02-24",
+      "type": "regular"
+    },
+    {
+      "id": "s7",
+      "userId": "u1",
+      "cafeId": "c2",
+      "date": "2026-02-22",
+      "type": "regular"
+    },
+    {
+      "id": "s8",
+      "userId": "u1",
+      "cafeId": "c2",
+      "date": "2026-02-20",
+      "type": "regular"
+    },
+    {
+      "id": "s9",
+      "userId": "u1",
+      "cafeId": "c3",
+      "date": "2026-02-23",
+      "type": "regular"
+    },
+    {
+      "id": "s10",
+      "userId": "u1",
+      "cafeId": "c3",
+      "date": "2026-02-21",
+      "type": "regular"
+    },
+    {
+      "id": "s11",
+      "userId": "u1",
+      "cafeId": "c4",
+      "date": "2026-02-24",
+      "type": "bonus"
+    },
+    {
+      "id": "s12",
+      "userId": "u1",
+      "cafeId": "c4",
+      "date": "2026-02-22",
+      "type": "regular"
+    },
+    {
+      "id": "s1771974492327",
+      "userId": "u1",
+      "cafeId": "c5",
+      "type": "regular",
+      "orderTotal": 9,
+      "date": "2026-02-24"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord_001",
+      "userId": "u1",
+      "cafeId": "c1",
+      "products": [
+        {
+          "name": "Cappuccino",
+          "price": 4.5
+        },
+        {
+          "name": "Croissant",
+          "price": 3
+        }
+      ],
+      "total": 7.5,
+      "status": "completed",
+      "orderType": "dine-in",
+      "createdAt": "2026-02-24T10:30:00Z"
+    },
+    {
+      "id": "ord_002",
+      "userId": "u1",
+      "cafeId": "c2",
+      "products": [
+        {
+          "name": "Latte",
+          "price": 4
+        },
+        {
+          "name": "Tiramisu",
+          "price": 6
+        }
+      ],
+      "total": 10,
+      "status": "completed",
+      "orderType": "takeout",
+      "createdAt": "2026-02-23T15:45:00Z"
+    },
+    {
+      "id": "ord_003",
+      "userId": "u1",
+      "cafeId": "c3",
+      "products": [
+        {
+          "name": "Americano",
+          "price": 3
+        },
+        {
+          "name": "Brownie",
+          "price": 4
+        },
+        {
+          "name": "Galletas Choco",
+          "price": 2
+        }
+      ],
+      "total": 9,
+      "status": "completed",
+      "orderType": "dine-in",
+      "createdAt": "2026-02-22T09:15:00Z"
+    },
+    {
+      "id": "ord_1771974492325",
+      "userId": "u1",
+      "cafeId": "c5",
+      "products": [
+        {
+          "name": "Mocha",
+          "price": 5,
+          "description": "Mocha - $5"
+        },
+        {
+          "name": "Brownie",
+          "price": 4,
+          "description": "Brownie - $4"
+        }
+      ],
+      "total": 9,
+      "orderType": "dine-in",
+      "status": "completed",
+      "createdAt": "2026-02-24T23:08:12.325Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev_001",
+      "userId": "u1",
+      "cafeId": "c1",
+      "rating": 5,
+      "text": "Excelente café y ambiente muy acogedor. El WiFi es rápido y perfecto para trabajar.",
+      "tags": [
+        "acogedor",
+        "wifi",
+        "silencioso"
+      ],
+      "images": [],
+      "createdAt": "2026-02-24T11:00:00Z",
+      "updatedAt": "2026-02-24T11:00:00Z"
+    },
+    {
+      "id": "rev_002",
+      "userId": "u1",
+      "cafeId": "c2",
+      "rating": 5,
+      "text": "El mejor tiramisu que he probado. El espresso es auténtico italiano.",
+      "tags": [
+        "comida",
+        "acogedor"
+      ],
+      "images": [],
+      "createdAt": "2026-02-23T16:00:00Z",
+      "updatedAt": "2026-02-23T16:00:00Z"
+    },
+    {
+      "id": "rev_003",
+      "userId": "u1",
+      "cafeId": "c3",
+      "rating": 4,
+      "text": "Buen café mexicano, aunque a veces hay mucha gente.",
+      "tags": [
+        "comida"
+      ],
+      "images": [],
+      "createdAt": "2026-02-22T10:00:00Z",
+      "updatedAt": "2026-02-22T10:00:00Z"
+    },
+    {
+      "id": "rev_1771974533950",
+      "userId": "u2",
+      "cafeId": "c4",
+      "text": "Actualizado: El mejor café con leche que he probado!",
+      "rating": 4,
+      "tags": [
+        "acogedor",
+        "delicioso"
+      ],
+      "images": [],
+      "createdAt": "2026-02-24T23:08:53.950Z",
+      "updatedAt": "2026-02-24T23:09:00.534Z"
+    }
+  ],
+  "reviewHistory": [
+    {
+      "reviewId": "rev_1771974533950",
+      "state": {
+        "id": "rev_1771974533950",
+        "userId": "u2",
+        "cafeId": "c4",
+        "text": "Excelente ambiente y café delicioso!",
+        "rating": 5,
+        "tags": [
+          "acogedor",
+          "delicioso"
+        ],
+        "images": [],
+        "createdAt": "2026-02-24T23:08:53.950Z",
+        "updatedAt": "2026-02-24T23:08:53.950Z"
+      },
+      "reason": "Reseña creada",
+      "savedAt": "2026-02-24T23:08:53.956Z"
+    },
+    {
+      "reviewId": "rev_1771974533950",
+      "state": {
+        "id": "rev_1771974533950",
+        "userId": "u2",
+        "cafeId": "c4",
+        "text": "Excelente ambiente y café delicioso!",
+        "rating": 5,
+        "tags": [
+          "acogedor",
+          "delicioso"
+        ],
+        "images": [],
+        "createdAt": "2026-02-24T23:08:53.950Z",
+        "updatedAt": "2026-02-24T23:08:53.950Z"
+      },
+      "reason": "Antes de edición",
+      "savedAt": "2026-02-24T23:09:00.532Z"
+    },
+    {
+      "reviewId": "rev_1771974533950",
+      "state": {
+        "id": "rev_1771974533950",
+        "userId": "u2",
+        "cafeId": "c4",
+        "text": "Excelente ambiente y café delicioso!",
+        "rating": 5,
+        "tags": [
+          "acogedor",
+          "delicioso"
+        ],
+        "images": [],
+        "createdAt": "2026-02-24T23:08:53.950Z",
+        "updatedAt": "2026-02-24T23:08:53.950Z"
+      },
+      "savedAt": "2026-02-24T23:09:00.534Z"
+    }
+  ],
+  "settings": {
+    "currentStampRule": "double",
+    "stampRuleHistory": [
+      {
+        "rule": "double",
+        "changedAt": "2026-02-24T23:09:40.757Z"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "brewjourney",
+  "version": "1.0.0",
+  "description": "Pasaporte de cafeterías - Sistema con patrones de diseño",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "server": "node server.js",
+    "demo": "node BrewJourney/demo/demo-refactored.js",
+    "demo:old": "node BrewJourney/demo/demo.js",
+    "demo:refactored": "node BrewJourney/demo/demo-refactored.js"
+  },
+  "keywords": [
+    "cafe",
+    "stamps",
+    "design-patterns",
+    "factory",
+    "strategy",
+    "memento"
+  ],
+  "author": "Orval Vera, Karla Nava, Jesus Escobar, Ximena Garcia",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "lowdb": "^5.1.0"
+  }
+}

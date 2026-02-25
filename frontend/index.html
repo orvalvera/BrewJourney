@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrewJourney - Tu Pasaporte de Cafeterías</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-coffee"></i>
+            <span>BrewJourney</span>
+        </div>
+        <div class="nav-links">
+            <a href="#home" class="active">Inicio</a>
+            <a href="#passport">Mi Pasaporte</a>
+            <a href="#cafes">Cafeterías</a>
+            <a href="#customize">Personalizar</a>
+            <a href="#orders">Mis Órdenes</a>
+        </div>
+        <div class="nav-user">
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Samuel" alt="Avatar" class="avatar">
+            <span>Samuel Orval</span>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Tu Aventura <span class="highlight">Cafetera</span> Comienza Aquí</h1>
+            <p>Descubre nuevas cafeterías, acumula sellos y obtén recompensas increíbles</p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <i class="fas fa-stamp"></i>
+                    <span class="stat-number" id="totalStamps">12</span>
+                    <span class="stat-label">Sellos</span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-store"></i>
+                    <span class="stat-number" id="totalCafes">5</span>
+                    <span class="stat-label">Cafeterías</span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-star"></i>
+                    <span class="stat-number" id="totalReviews">8</span>
+                    <span class="stat-label">Reseñas</span>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="showSection('cafes')">
+                <i class="fas fa-map-marker-alt"></i> Explorar Cafeterías
+            </button>
+        </div>
+        <div class="hero-image">
+            <div class="passport-card">
+                <div class="passport-header">
+                    <i class="fas fa-passport"></i>
+                    <span>PASAPORTE CAFETERO</span>
+                </div>
+                <div class="passport-stamps" id="passportPreview">
+                    <!-- Los sellos se agregan dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Passport Section -->
+    <section id="passport" class="section passport-section hidden">
+        <h2><i class="fas fa-passport"></i> Mi Pasaporte</h2>
+        <div class="passport-container">
+            <div class="passport-book">
+                <div class="passport-page">
+                    <h3>Sellos Coleccionados</h3>
+                    <div class="stamps-grid" id="stampsGrid">
+                        <!-- Los sellos se cargan dinámicamente -->
+                    </div>
+                </div>
+                <div class="passport-progress">
+                    <h4>Progreso hacia próxima recompensa</h4>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p><span id="currentStamps">12</span> / 15 sellos para café gratis</p>
+                </div>
+            </div>
+            <div class="rewards-panel">
+                <h3><i class="fas fa-gift"></i> Recompensas Disponibles</h3>
+                <div class="reward-card">
+                    <div class="reward-icon"><i class="fas fa-mug-hot"></i></div>
+                    <div class="reward-info">
+                        <h4>Café Gratis</h4>
+                        <p>15 sellos</p>
+                    </div>
+                    <span class="reward-status locked">3 más</span>
+                </div>
+                <div class="reward-card">
+                    <div class="reward-icon"><i class="fas fa-cookie"></i></div>
+                    <div class="reward-info">
+                        <h4>Postre Gratis</h4>
+                        <p>25 sellos</p>
+                    </div>
+                    <span class="reward-status locked">13 más</span>
+                </div>
+                <div class="reward-card available">
+                    <div class="reward-icon"><i class="fas fa-percent"></i></div>
+                    <div class="reward-info">
+                        <h4>10% Descuento</h4>
+                        <p>10 sellos</p>
+                    </div>
+                    <span class="reward-status">¡Disponible!</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cafes Section -->
+    <section id="cafes" class="section cafes-section hidden">
+        <h2><i class="fas fa-store"></i> Cafeterías</h2>
+        <div class="cafes-grid" id="cafesGrid">
+            <!-- Las cafeterías se cargan dinámicamente -->
+        </div>
+    </section>
+
+    <!-- Customize Beverage Section (Decorator Pattern) -->
+    <section id="customize" class="section customize-section hidden">
+        <h2><i class="fas fa-wand-magic-sparkles"></i> Personaliza tu Bebida</h2>
+        <p class="section-subtitle">
+            <i class="fas fa-code"></i> Esta sección demuestra el <strong>Patrón Decorator</strong> - 
+            cada extra envuelve la bebida agregando funcionalidad dinámicamente
+        </p>
+        
+        <div class="customize-container">
+            <!-- Base Beverage Selection -->
+            <div class="customize-panel base-panel">
+                <h3><i class="fas fa-coffee"></i> Bebida Base</h3>
+                <div class="base-beverages" id="baseBeverages">
+                    <div class="base-option selected" data-name="Cappuccino" data-price="4.50">
+                        <i class="fas fa-mug-hot"></i>
+                        <span class="name">Cappuccino</span>
+                        <span class="price">$4.50</span>
+                    </div>
+                    <div class="base-option" data-name="Latte" data-price="4.00">
+                        <i class="fas fa-mug-hot"></i>
+                        <span class="name">Latte</span>
+                        <span class="price">$4.00</span>
+                    </div>
+                    <div class="base-option" data-name="Espresso" data-price="2.50">
+                        <i class="fas fa-mug-hot"></i>
+                        <span class="name">Espresso</span>
+                        <span class="price">$2.50</span>
+                    </div>
+                    <div class="base-option" data-name="Americano" data-price="3.00">
+                        <i class="fas fa-mug-hot"></i>
+                        <span class="name">Americano</span>
+                        <span class="price">$3.00</span>
+                    </div>
+                    <div class="base-option" data-name="Mocha" data-price="5.00">
+                        <i class="fas fa-mug-hot"></i>
+                        <span class="name">Mocha</span>
+                        <span class="price">$5.00</span>
+                    </div>
+                </div>
+                
+                <div class="size-selector">
+                    <h4><i class="fas fa-arrows-up-down"></i> Tamaño</h4>
+                    <div class="size-options" id="sizeOptions">
+                        <button class="size-btn" data-size="small">Chico</button>
+                        <button class="size-btn selected" data-size="medium">Mediano</button>
+                        <button class="size-btn" data-size="large">Grande</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Extras (Decorators) -->
+            <div class="customize-panel extras-panel">
+                <h3><i class="fas fa-plus-circle"></i> Extras (Decoradores)</h3>
+                <div class="extras-grid" id="extrasGrid">
+                    <!-- Milk Options -->
+                    <div class="extra-option" data-type="milk" data-milk-type="almendra">
+                        <div class="extra-icon"><i class="fas fa-seedling"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Leche de Almendra</span>
+                            <span class="extra-price">+$0.75</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="extra-option" data-type="milk" data-milk-type="avena">
+                        <div class="extra-icon"><i class="fas fa-leaf"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Leche de Avena</span>
+                            <span class="extra-price">+$0.75</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="extra-option" data-type="milk" data-milk-type="soya">
+                        <div class="extra-icon"><i class="fas fa-droplet"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Leche de Soya</span>
+                            <span class="extra-price">+$0.75</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    
+                    <!-- Extra Shot -->
+                    <div class="extra-option" data-type="extraShot" data-shots="1">
+                        <div class="extra-icon"><i class="fas fa-bolt"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Shot Extra</span>
+                            <span class="extra-price">+$0.80</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="extra-option" data-type="extraShot" data-shots="2">
+                        <div class="extra-icon"><i class="fas fa-bolt-lightning"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Doble Shot Extra</span>
+                            <span class="extra-price">+$1.60</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    
+                    <!-- Whipped Cream -->
+                    <div class="extra-option" data-type="whippedCream">
+                        <div class="extra-icon"><i class="fas fa-cloud"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Crema Batida</span>
+                            <span class="extra-price">+$0.60</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    
+                    <!-- Flavor Syrups -->
+                    <div class="extra-option" data-type="flavorSyrup" data-flavor="vainilla">
+                        <div class="extra-icon"><i class="fas fa-jar"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Jarabe Vainilla</span>
+                            <span class="extra-price">+$0.50</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="extra-option" data-type="flavorSyrup" data-flavor="caramelo">
+                        <div class="extra-icon"><i class="fas fa-candy-cane"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Jarabe Caramelo</span>
+                            <span class="extra-price">+$0.50</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="extra-option" data-type="flavorSyrup" data-flavor="avellana">
+                        <div class="extra-icon"><i class="fas fa-nut"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Jarabe Avellana</span>
+                            <span class="extra-price">+$0.50</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    
+                    <!-- Size Upgrade -->
+                    <div class="extra-option" data-type="sizeUpgrade">
+                        <div class="extra-icon"><i class="fas fa-expand"></i></div>
+                        <div class="extra-info">
+                            <span class="extra-name">Tamaño Extra</span>
+                            <span class="extra-price">+$1.00</span>
+                        </div>
+                        <div class="extra-check"><i class="fas fa-check"></i></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Result Panel -->
+            <div class="customize-panel result-panel">
+                <h3><i class="fas fa-receipt"></i> Tu Bebida Personalizada</h3>
+                <div class="result-card" id="customizeResult">
+                    <div class="result-preview">
+                        <div class="cup-icon">
+                            <i class="fas fa-mug-hot"></i>
+                        </div>
+                        <div class="result-name" id="resultName">Cappuccino</div>
+                        <div class="result-description" id="resultDescription">
+                            Bebida base sin extras
+                        </div>
+                    </div>
+                    <div class="result-breakdown" id="resultBreakdown">
+                        <div class="breakdown-item">
+                            <span>Cappuccino (Mediano)</span>
+                            <span>$4.50</span>
+                        </div>
+                    </div>
+                    <div class="result-total">
+                        <span>Total:</span>
+                        <span id="resultTotal">$4.50</span>
+                    </div>
+                </div>
+                
+                <div class="decorator-chain" id="decoratorChain">
+                    <h4><i class="fas fa-link"></i> Cadena de Decoradores</h4>
+                    <div class="chain-visual" id="chainVisual">
+                        <div class="chain-item base">BaseBeverage("Cappuccino")</div>
+                    </div>
+                </div>
+                
+                <button class="btn-primary btn-add-to-order" onclick="addCustomBeverageToOrder()">
+                    <i class="fas fa-cart-plus"></i> Agregar a Orden
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Orders Section -->
+    <section id="orders" class="section orders-section hidden">
+        <h2><i class="fas fa-receipt"></i> Mis Órdenes</h2>
+        <div class="orders-container">
+            <div class="orders-list" id="ordersList">
+                <!-- Las órdenes se cargan dinámicamente -->
+            </div>
+            <div class="new-order-panel">
+                <h3><i class="fas fa-plus-circle"></i> Nueva Orden</h3>
+                <form id="newOrderForm">
+                    <div class="form-group">
+                        <label>Cafetería</label>
+                        <select id="orderCafe" required>
+                            <option value="">Selecciona una cafetería</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Productos</label>
+                        <div class="products-selector" id="productsSelector">
+                            <!-- Productos dinámicos -->
+                        </div>
+                    </div>
+                    <div class="order-summary">
+                        <h4>Resumen</h4>
+                        <div id="orderItems"></div>
+                        <div class="order-total">
+                            <span>Total:</span>
+                            <span id="orderTotal">$0.00</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-check"></i> Confirmar Orden
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal para Reseñas -->
+    <div id="reviewModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-star"></i> Escribir Reseña</h3>
+                <button class="close-modal" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="reviewForm">
+                <input type="hidden" id="reviewCafeId">
+                <div class="form-group">
+                    <label>Calificación</label>
+                    <div class="star-rating" id="starRating">
+                        <i class="fas fa-star" data-rating="1"></i>
+                        <i class="fas fa-star" data-rating="2"></i>
+                        <i class="fas fa-star" data-rating="3"></i>
+                        <i class="fas fa-star" data-rating="4"></i>
+                        <i class="fas fa-star" data-rating="5"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Tu experiencia</label>
+                    <textarea id="reviewText" rows="4" placeholder="Cuéntanos tu experiencia..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <div class="tags-container">
+                        <span class="tag" data-tag="acogedor">☕ Acogedor</span>
+                        <span class="tag" data-tag="wifi">📶 Buen WiFi</span>
+                        <span class="tag" data-tag="silencioso">🤫 Silencioso</span>
+                        <span class="tag" data-tag="musica">🎵 Buena música</span>
+                        <span class="tag" data-tag="comida">🍰 Rica comida</span>
+                    </div>
+                </div>
+                <div class="review-actions">
+                    <button type="button" class="btn-secondary" id="undoReview" disabled>
+                        <i class="fas fa-undo"></i> Deshacer
+                    </button>
+                    <button type="button" class="btn-secondary" id="redoReview" disabled>
+                        <i class="fas fa-redo"></i> Rehacer
+                    </button>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-paper-plane"></i> Publicar Reseña
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast hidden">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -2,16 +2,16 @@
 
 > **Pasaporte Digital de Cafeterías** - Sistema con Patrones de Diseño en JavaScript ES6
 
-## 📋 Descripción
+## Descripción
 
 BrewJourney es una aplicación conceptual que funciona como un "pasaporte de cafeterías". Los usuarios pueden:
 
-- 🎫 **Registrar visitas** a cafeterías y acumular sellos digitales
-- 🛒 **Crear órdenes** con diferentes tipos de productos
-- ⭐ **Escribir reseñas** con funcionalidad de undo/redo
-- 🎁 **Obtener beneficios** mediante reglas de lealtad y promociones
+-  **Registrar visitas** a cafeterías y acumular sellos digitales
+-  **Crear órdenes** con diferentes tipos de productos
+-  **Escribir reseñas** con funcionalidad de undo/redo
+-  **Obtener beneficios** mediante reglas de lealtad y promociones
 
-## 🏗️ Patrones de Diseño Implementados
+## Patrones de Diseño Implementados
 
 | Tipo | Patrón | Aplicación |
 |------|--------|------------|
@@ -20,7 +20,7 @@ BrewJourney es una aplicación conceptual que funciona como un "pasaporte de caf
 | **Comportamiento** | Strategy | Reglas de acumulación de sellos |
 | **Comportamiento** | Memento | Historial de ediciones de reseñas |
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 BrewJourney/
@@ -69,7 +69,7 @@ BrewJourney/
     └── demo-refactored.js       # Demo refactorizado
 ```
 
-## 🚀 Instalación y Ejecución
+## Instalación y Ejecución
 
 ### Requisitos
 - Node.js >= 18.0.0
@@ -99,7 +99,7 @@ npm run demo
 npm run demo:old
 ```
 
-## 🌐 API Endpoints
+## API Endpoints
 
 | Método | Endpoint | Descripción | Patrón |
 |--------|----------|-------------|--------|
@@ -118,57 +118,33 @@ npm run demo:old
 | POST | `/api/reviews/:id/undo` | Deshacer cambio | Memento |
 | GET | `/api/info` | Info del sistema | - |
 
-## 📊 Ejemplo de Salida (Demo)
-
-```
-╔══════════════════════════════════════════════════════════╗
-║           ☕ BREWJOURNEY - Demo Refactorizado v1.0       ║
-╚══════════════════════════════════════════════════════════╝
-
-▸ 1.1 Creación de Productos Individuales
-✓ Producto creado: Cappuccino (large) - $4.5
-✓ Producto creado: Tiramisu (italian) - $6
-✓ Producto creado: 🥨 Croissant de Almendra (sweet) - $3.50
-✓ Producto creado: 🛍️ Taza BrewJourney (mug) - $15.00
-
-▸ 2.1 Regla Básica (1 sello por día)
-• Primera visita hoy: ¡Sello agregado para 2026-02-24!
-• Segunda visita hoy: Ya tienes un sello para esta cafetería hoy
-
-▸ 3.3 Deshacer Cambio (Undo)
-✓ Cambio deshecho
-📝 Reseña restaurada:
-   Texto: "Excelente café, muy buen ambiente"
-   Rating: ⭐⭐⭐⭐⭐
-```
-
-## 🔄 Mejoras Implementadas (v1.0)
+## Mejoras Implementadas (v1.0)
 
 ### Factory Method (Creacional)
-- ✅ Eliminación de if/else encadenados
-- ✅ Registry pattern para extensibilidad
-- ✅ Soporte para 5+ tipos de productos
-- ✅ Validación robusta de datos
+- Eliminación de if/else encadenados
+- Registry pattern para extensibilidad
+- Soporte para 5+ tipos de productos
+- Validación robusta de datos
 
 ### Decorator (Estructural)
-- ✅ Personalización dinámica de bebidas
-- ✅ 5 decoradores: Leche, Shot Extra, Crema, Jarabe, Tamaño
-- ✅ Cadena de decoradores visible en UI
-- ✅ Cálculo de precio dinámico
+- Personalización dinámica de bebidas
+- 5 decoradores: Leche, Shot Extra, Crema, Jarabe, Tamaño
+- Cadena de decoradores visible en UI
+- Cálculo de precio dinámico
 
 ### Strategy (Comportamiento)
-- ✅ 3 estrategias de sellos intercambiables
-- ✅ Contexto con historial de cambios
-- ✅ Resultado estructurado (no solo boolean)
-- ✅ Eliminación de parámetros no usados
+- 3 estrategias de sellos intercambiables
+- Contexto con historial de cambios
+- Resultado estructurado (no solo boolean)
+- Eliminación de parámetros no usados
 
 ### Memento (Comportamiento)
-- ✅ Historial completo de estados
-- ✅ Operaciones undo/redo
-- ✅ Estados inmutables (Object.freeze)
-- ✅ Metadata con timestamp y razón
+- Historial completo de estados
+- Operaciones undo/redo
+- Estados inmutables (Object.freeze)
+- Metadata con timestamp y razón
 
-## 👥 Equipo
+## Equipo
 
 | Nombre | Rol |
 |--------|-----|

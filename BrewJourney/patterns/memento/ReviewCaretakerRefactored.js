@@ -21,35 +21,17 @@ export class ReviewCaretaker {
    * @param {string} reason - Razón del backup
    */
   backup(review, reason = 'User action') {
-    if (!review || !review.id) {
+    if (!this._isValidReview(review)) {
       throw new Error('Se requiere una reseña válida con ID');
     }
 
     const memento = review.createMemento({ reason, version: this._getNextVersion(review.id) });
+    const reviewHistory = this._getOrCreateHistory(review.id);
 
-    if (!this._history.has(review.id)) {
-      this._history.set(review.id, {
-        mementos: [],
-        currentIndex: -1
-      });
-    }
-
-    const reviewHistory = this._history.get(review.id);
-
-    // Si estamos en medio del historial, eliminar los estados "futuros"
-    if (reviewHistory.currentIndex < reviewHistory.mementos.length - 1) {
-      reviewHistory.mementos = reviewHistory.mementos.slice(0, reviewHistory.currentIndex + 1);
-    }
-
-    // Agregar nuevo memento
+    this._trimFutureStates(reviewHistory);
     reviewHistory.mementos.push(memento);
     reviewHistory.currentIndex = reviewHistory.mementos.length - 1;
-
-    // Mantener el límite de historial
-    if (reviewHistory.mementos.length > this._maxHistory) {
-      reviewHistory.mementos.shift();
-      reviewHistory.currentIndex--;
-    }
+    this._enforceHistoryLimit(reviewHistory);
 
     return true;
   }
@@ -60,11 +42,10 @@ export class ReviewCaretaker {
    * @returns {boolean} true si se pudo deshacer
    */
   undo(review) {
-    if (!review || !this._history.has(review.id)) {
+    const reviewHistory = this._getHistoryOrNull(review);
+    if (!reviewHistory) {
       return false;
     }
-
-    const reviewHistory = this._history.get(review.id);
 
     if (reviewHistory.currentIndex <= 0) {
       return false; // No hay más estados anteriores
@@ -83,11 +64,10 @@ export class ReviewCaretaker {
    * @returns {boolean} true si se pudo rehacer
    */
   redo(review) {
-    if (!review || !this._history.has(review.id)) {
+    const reviewHistory = this._getHistoryOrNull(review);
+    if (!reviewHistory) {
       return false;
     }
-
-    const reviewHistory = this._history.get(review.id);
 
     if (reviewHistory.currentIndex >= reviewHistory.mementos.length - 1) {
       return false; // No hay más estados futuros
@@ -107,11 +87,10 @@ export class ReviewCaretaker {
    * @returns {boolean} true si se pudo restaurar
    */
   restoreToVersion(review, index) {
-    if (!review || !this._history.has(review.id)) {
+    const reviewHistory = this._getHistoryOrNull(review);
+    if (!reviewHistory) {
       return false;
     }
-
-    const reviewHistory = this._history.get(review.id);
 
     if (index < 0 || index >= reviewHistory.mementos.length) {
       return false;
@@ -185,5 +164,39 @@ export class ReviewCaretaker {
   _getNextVersion(reviewId) {
     if (!this._history.has(reviewId)) return 1;
     return this._history.get(reviewId).mementos.length + 1;
+  }
+
+  _isValidReview(review) {
+    return Boolean(review && review.id);
+  }
+
+  _getHistoryOrNull(review) {
+    if (!this._isValidReview(review) || !this._history.has(review.id)) {
+      return null;
+    }
+    return this._history.get(review.id);
+  }
+
+  _getOrCreateHistory(reviewId) {
+    if (!this._history.has(reviewId)) {
+      this._history.set(reviewId, {
+        mementos: [],
+        currentIndex: -1
+      });
+    }
+    return this._history.get(reviewId);
+  }
+
+  _trimFutureStates(reviewHistory) {
+    if (reviewHistory.currentIndex < reviewHistory.mementos.length - 1) {
+      reviewHistory.mementos = reviewHistory.mementos.slice(0, reviewHistory.currentIndex + 1);
+    }
+  }
+
+  _enforceHistoryLimit(reviewHistory) {
+    if (reviewHistory.mementos.length > this._maxHistory) {
+      reviewHistory.mementos.shift();
+      reviewHistory.currentIndex--;
+    }
   }
 }

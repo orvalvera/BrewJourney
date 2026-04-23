@@ -1,11 +1,3 @@
-/**
- * BaseBeverage - Componente concreto base
- * 
- * Representa una bebida simple sin extras.
- * Es el componente que será "decorado" con extras adicionales.
- * 
- * @pattern Decorator (Estructural) - ConcreteComponent
- */
 import { IBeverageComponent } from './IBeverageComponent.js';
 
 export class BaseBeverage extends IBeverageComponent {
@@ -37,7 +29,6 @@ export class BaseBeverage extends IBeverageComponent {
     }
 }
 
-// Bebidas predefinidas
 export class Espresso extends BaseBeverage {
     constructor() {
         super('Espresso', 2.50, 'small');

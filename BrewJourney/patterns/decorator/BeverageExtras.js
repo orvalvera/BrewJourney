@@ -1,16 +1,5 @@
-/**
- * Decoradores concretos para extras de bebidas
- * 
- * Cada decorador agrega una funcionalidad/extra específica a la bebida
- * y modifica su precio y descripción.
- * 
- * @pattern Decorator (Estructural) - Concrete Decorators
- */
 import { BeverageDecorator } from './BeverageDecorator.js';
 
-/**
- * MilkDecorator - Agrega diferentes tipos de leche
- */
 export class MilkDecorator extends BeverageDecorator {
     static MILK_TYPES = {
         regular: { name: 'Leche', price: 0.00 },
@@ -46,16 +35,13 @@ export class MilkDecorator extends BeverageDecorator {
     }
 }
 
-/**
- * ExtraShotDecorator - Agrega shots extra de espresso
- */
 export class ExtraShotDecorator extends BeverageDecorator {
     static PRICE_PER_SHOT = 0.75;
 
-    constructor(beverage, shots = 1) {
-        super(beverage);
-        this._shots = Math.max(1, Math.min(shots, 4)); // 1-4 shots
-    }
+  constructor(beverage, shots = 1) {
+    super(beverage);
+    this._shots = Math.max(1, Math.min(shots, 4));
+  }
 
     getName() {
         const shotText = this._shots === 1 ? 'Shot Extra' : `${this._shots} Shots Extra`;
@@ -75,9 +61,6 @@ export class ExtraShotDecorator extends BeverageDecorator {
     }
 }
 
-/**
- * WhippedCreamDecorator - Agrega crema batida
- */
 export class WhippedCreamDecorator extends BeverageDecorator {
     static PRICE = 0.50;
 
@@ -102,9 +85,6 @@ export class WhippedCreamDecorator extends BeverageDecorator {
     }
 }
 
-/**
- * FlavorSyrupDecorator - Agrega jarabes de sabor
- */
 export class FlavorSyrupDecorator extends BeverageDecorator {
     static FLAVORS = {
         vanilla: { name: 'Vainilla', price: 0.50 },
@@ -137,9 +117,6 @@ export class FlavorSyrupDecorator extends BeverageDecorator {
     }
 }
 
-/**
- * SizeUpgradeDecorator - Aumenta el tamaño de la bebida
- */
 export class SizeUpgradeDecorator extends BeverageDecorator {
     static UPGRADES = {
         'small-medium': { price: 0.50, newSize: 'medium' },

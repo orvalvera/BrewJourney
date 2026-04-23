@@ -1,25 +1,9 @@
-/**
- * ReviewCaretaker - Patrón Memento Refactorizado (Caretaker)
- * 
- * MEJORAS RESPECTO A LA VERSIÓN ANTERIOR:
- * 1. Historial completo de mementos (no solo el último)
- * 2. Límite configurable de historial para evitar memory leaks
- * 3. Métodos undo() y redo() completos
- * 4. Información de diagnóstico y estadísticas
- * 5. Capacidad de restaurar a cualquier punto del historial
- */
 export class ReviewCaretaker {
   constructor(maxHistory = 10) {
-    // Map<reviewId, { mementos: Memento[], currentIndex: number }>
     this._history = new Map();
     this._maxHistory = maxHistory;
   }
 
-  /**
-   * Crea un backup del estado actual de una reseña
-   * @param {Review} review - Reseña a respaldar
-   * @param {string} reason - Razón del backup
-   */
   backup(review, reason = 'User action') {
     if (!this._isValidReview(review)) {
       throw new Error('Se requiere una reseña válida con ID');
@@ -36,11 +20,6 @@ export class ReviewCaretaker {
     return true;
   }
 
-  /**
-   * Deshace el último cambio (undo)
-   * @param {Review} review - Reseña a restaurar
-   * @returns {boolean} true si se pudo deshacer
-   */
   undo(review) {
     const reviewHistory = this._getHistoryOrNull(review);
     if (!reviewHistory) {
@@ -48,7 +27,7 @@ export class ReviewCaretaker {
     }
 
     if (reviewHistory.currentIndex <= 0) {
-      return false; // No hay más estados anteriores
+      return false;
     }
 
     reviewHistory.currentIndex--;
@@ -58,11 +37,6 @@ export class ReviewCaretaker {
     return true;
   }
 
-  /**
-   * Rehace el último cambio deshecho (redo)
-   * @param {Review} review - Reseña a restaurar
-   * @returns {boolean} true si se pudo rehacer
-   */
   redo(review) {
     const reviewHistory = this._getHistoryOrNull(review);
     if (!reviewHistory) {
@@ -70,7 +44,7 @@ export class ReviewCaretaker {
     }
 
     if (reviewHistory.currentIndex >= reviewHistory.mementos.length - 1) {
-      return false; // No hay más estados futuros
+      return false;
     }
 
     reviewHistory.currentIndex++;
@@ -80,12 +54,6 @@ export class ReviewCaretaker {
     return true;
   }
 
-  /**
-   * Restaura a una versión específica del historial
-   * @param {Review} review - Reseña a restaurar
-   * @param {number} index - Índice del historial (0 = más antiguo)
-   * @returns {boolean} true si se pudo restaurar
-   */
   restoreToVersion(review, index) {
     const reviewHistory = this._getHistoryOrNull(review);
     if (!reviewHistory) {
@@ -103,33 +71,21 @@ export class ReviewCaretaker {
     return true;
   }
 
-  /**
-   * Verifica si hay backup disponible
-   */
   hasBackup(reviewId) {
     return this._history.has(reviewId) && this._history.get(reviewId).mementos.length > 0;
   }
 
-  /**
-   * Verifica si se puede deshacer
-   */
   canUndo(reviewId) {
     if (!this._history.has(reviewId)) return false;
     return this._history.get(reviewId).currentIndex > 0;
   }
 
-  /**
-   * Verifica si se puede rehacer
-   */
   canRedo(reviewId) {
     if (!this._history.has(reviewId)) return false;
     const history = this._history.get(reviewId);
     return history.currentIndex < history.mementos.length - 1;
   }
 
-  /**
-   * Obtiene información del historial de una reseña
-   */
   getHistoryInfo(reviewId) {
     if (!this._history.has(reviewId)) {
       return null;
@@ -150,17 +106,10 @@ export class ReviewCaretaker {
     };
   }
 
-  /**
-   * Limpia el historial de una reseña
-   */
   clearHistory(reviewId) {
     this._history.delete(reviewId);
   }
 
-  /**
-   * Obtiene la siguiente versión para un memento
-   * @private
-   */
   _getNextVersion(reviewId) {
     if (!this._history.has(reviewId)) return 1;
     return this._history.get(reviewId).mementos.length + 1;

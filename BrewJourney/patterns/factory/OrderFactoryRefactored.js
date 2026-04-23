@@ -1,22 +1,9 @@
 import { Order } from '../../domain/Order.js';
 import { ProductFactory } from './ProductFactory.js';
 
-/**
- * OrderFactory - Patrón Factory Method Refactorizado
- * 
- * MEJORAS RESPECTO A LA VERSIÓN ANTERIOR:
- * 1. Delegación a ProductFactory para la creación de productos
- * 2. Generación de IDs más robusta con UUID-like
- * 3. Validación de parámetros de entrada
- * 4. Soporte para diferentes tipos de órdenes
- * 5. Principio de Responsabilidad Única: solo se encarga de crear órdenes
- */
 export class OrderFactory {
   static orderCounter = 0;
 
-  /**
-   * Genera un ID único para la orden
-   */
   static generateOrderId(type = 'order') {
     OrderFactory.orderCounter++;
     const timestamp = Date.now();
@@ -24,17 +11,7 @@ export class OrderFactory {
     return `${type}_${timestamp}_${random}_${OrderFactory.orderCounter}`;
   }
 
-  /**
-   * Crea una nueva orden con los productos especificados
-   * @param {Object} options - Opciones de la orden
-   * @param {string} options.type - Tipo de orden ('dine-in', 'takeout', 'delivery')
-   * @param {User} options.user - Usuario que realiza la orden
-   * @param {Cafe} options.cafe - Cafetería donde se realiza la orden
-   * @param {Array} options.items - Datos de los productos a incluir
-   * @returns {Order} Nueva instancia de Order
-   */
   static createOrder({ type = 'dine-in', user, cafe, items = [] }) {
-    // Validaciones
     if (!user) {
       throw new Error('Se requiere un usuario para crear la orden');
     }
@@ -47,7 +24,6 @@ export class OrderFactory {
     const order = new Order(orderId, user, cafe);
     order.orderType = type;
 
-    // Crear y agregar productos usando ProductFactory
     if (items && items.length > 0) {
       const creationResults = items.map((itemData, index) => {
         try {
@@ -59,7 +35,6 @@ export class OrderFactory {
         }
       });
 
-      // Verificar si hubo errores
       const errors = creationResults.filter(r => !r.success);
       if (errors.length > 0) {
         const errorMessages = errors.map(e => `Item ${e.index + 1}: ${e.error}`).join('; ');
@@ -70,16 +45,10 @@ export class OrderFactory {
     return order;
   }
 
-  /**
-   * Crea una orden vacía (para agregar productos después)
-   */
   static createEmptyOrder(user, cafe, type = 'dine-in') {
     return OrderFactory.createOrder({ type, user, cafe, items: [] });
   }
 
-  /**
-   * Clona una orden existente (útil para reordenar)
-   */
   static cloneOrder(originalOrder, newUser = null) {
     const items = originalOrder.products.map(product => ({
       type: product.type || 'beverage',

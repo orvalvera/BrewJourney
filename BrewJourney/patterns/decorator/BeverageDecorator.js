@@ -1,11 +1,3 @@
-/**
- * BeverageDecorator - Decorador base abstracto
- * 
- * Clase abstracta que implementa la interfaz IBeverageComponent y
- * mantiene una referencia al componente que está decorando.
- * 
- * @pattern Decorator (Estructural) - Base Decorator
- */
 import { IBeverageComponent } from './IBeverageComponent.js';
 
 export class BeverageDecorator extends IBeverageComponent {

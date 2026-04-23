@@ -8,7 +8,7 @@ import { BasicStampRule } from './BasicStampRule.js';
  */
 export class StampRuleContext {
   constructor(defaultRule = null) {
-    this.currentRule = defaultRule || new BasicStampRule();
+    this.currentRule = this._validateRule(defaultRule || new BasicStampRule());
     this.ruleHistory = [];
   }
 
@@ -17,14 +17,9 @@ export class StampRuleContext {
    * @param {IStampRule} rule - Nueva regla a aplicar
    */
   setRule(rule) {
-    if (!rule || typeof rule.applyVisit !== 'function') {
-      throw new Error('La regla debe implementar el método applyVisit');
-    }
-    this.ruleHistory.push({
-      rule: this.currentRule.getName(),
-      changedAt: new Date()
-    });
-    this.currentRule = rule;
+    const validatedRule = this._validateRule(rule);
+    this.ruleHistory.push(this._buildHistoryEntry(this.currentRule, validatedRule));
+    this.currentRule = validatedRule;
   }
 
   /**
@@ -58,5 +53,23 @@ export class StampRuleContext {
    */
   getRuleHistory() {
     return [...this.ruleHistory];
+  }
+
+  _validateRule(rule) {
+    if (!rule || typeof rule.applyVisit !== 'function') {
+      throw new Error('La regla debe implementar el método applyVisit');
+    }
+    if (typeof rule.getName !== 'function' || typeof rule.getDescription !== 'function') {
+      throw new Error('La regla debe implementar getName y getDescription');
+    }
+    return rule;
+  }
+
+  _buildHistoryEntry(previousRule, nextRule) {
+    return {
+      from: previousRule.getName(),
+      to: nextRule.getName(),
+      changedAt: new Date()
+    };
   }
 }

@@ -55,13 +55,6 @@ Demo:
 npm run demo
 ```
 
-## Scripts de auditoria
-
-En `auditoria/scripts/`:
-
-- `sync_cmmi_issues.sh`: sincroniza labels e issues CMMI
-- `generate_metricas.py`: genera metricas de code smells y KPIs
-
 ## Equipo
 
 - Karla Nava Garcia

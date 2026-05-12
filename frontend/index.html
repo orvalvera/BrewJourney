@@ -11,44 +11,157 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Navbar -->
+    <!-- Login (demo) -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <div class="login-brand">
+                <i class="fas fa-coffee"></i>
+                <h1>BrewJourney</h1>
+            </div>
+            <p class="login-subtitle">Prototipo académico · Ingeniería de Software II</p>
+            <p class="login-hint">Selecciona un usuario de demostración. Clave: <code>demo</code></p>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="loginUserSelect">Usuario</label>
+                    <select id="loginUserSelect" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" autocomplete="off" placeholder="demo" />
+                </div>
+                <button type="submit" class="btn-primary btn-login">
+                    <i class="fas fa-right-to-bracket"></i> Entrar al sistema
+                </button>
+            </form>
+            <p class="login-footnote">Los datos provienen de la API local (<code>/api</code>) y de <code>data/db.json</code>.</p>
+        </div>
+    </div>
+
+    <div id="appShell" class="app-shell hidden">
     <nav class="navbar">
         <div class="nav-brand">
             <i class="fas fa-coffee"></i>
             <span>BrewJourney</span>
         </div>
         <div class="nav-links">
-            <a href="#home" class="active">Inicio</a>
-            <a href="#passport">Mi Pasaporte</a>
+            <a href="#dashboard" class="active">Panel</a>
+            <a href="#home">Inicio</a>
+            <a href="#passport">Pasaporte</a>
+            <a href="#rewards">Recompensas</a>
             <a href="#cafes">Cafeterías</a>
             <a href="#customize">Personalizar</a>
-            <a href="#orders">Mis Órdenes</a>
+            <a href="#orders">Órdenes</a>
+            <a href="#reviews">Reseñas</a>
         </div>
-        <div class="nav-user">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Samuel" alt="Avatar" class="avatar">
-            <span>Samuel Orval</span>
+        <div class="nav-user-area">
+            <div class="nav-user" id="navUserArea">
+                <img src="" alt="" class="avatar" id="navUserAvatar">
+                <span id="navUserName">—</span>
+            </div>
+            <button type="button" class="btn-logout" id="btnLogout" title="Cerrar sesión">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
         </div>
     </nav>
 
+    <!-- Dashboard -->
+    <section id="dashboard" class="section dashboard-section">
+        <div class="dashboard-intro">
+            <h2><i class="fas fa-gauge-high"></i> Panel principal</h2>
+            <p class="dashboard-welcome">Hola, <strong id="dashboardUserName">—</strong></p>
+            <p class="dashboard-academic">Vista de resumen · datos en vivo desde <code>GET /api/stats/:userId</code>, <code>GET /api/info</code> y rutas de patrones indicadas abajo.</p>
+        </div>
+        <div class="dashboard-grid" id="dashboardGrid">
+            <article class="dashboard-card">
+                <div class="dashboard-card-icon"><i class="fas fa-stamp"></i></div>
+                <div class="dashboard-card-body">
+                    <span class="dashboard-card-label">Sellos totales</span>
+                    <span class="dashboard-card-value" id="dashTotalStamps">0</span>
+                </div>
+            </article>
+            <article class="dashboard-card">
+                <div class="dashboard-card-icon"><i class="fas fa-store"></i></div>
+                <div class="dashboard-card-body">
+                    <span class="dashboard-card-label">Cafeterías visitadas</span>
+                    <span class="dashboard-card-value" id="dashCafesVisited">0</span>
+                </div>
+            </article>
+            <article class="dashboard-card">
+                <div class="dashboard-card-icon"><i class="fas fa-receipt"></i></div>
+                <div class="dashboard-card-body">
+                    <span class="dashboard-card-label">Órdenes</span>
+                    <span class="dashboard-card-value" id="dashTotalOrders">0</span>
+                </div>
+            </article>
+            <article class="dashboard-card">
+                <div class="dashboard-card-icon"><i class="fas fa-star"></i></div>
+                <div class="dashboard-card-body">
+                    <span class="dashboard-card-label">Reseñas publicadas</span>
+                    <span class="dashboard-card-value" id="dashTotalReviews">0</span>
+                </div>
+            </article>
+            <article class="dashboard-card dashboard-card-wide">
+                <div class="dashboard-card-icon"><i class="fas fa-wallet"></i></div>
+                <div class="dashboard-card-body">
+                    <span class="dashboard-card-label">Total gastado (órdenes demo)</span>
+                    <span class="dashboard-card-value" id="dashTotalSpent">$0.00</span>
+                </div>
+            </article>
+        </div>
+        <div class="dashboard-shortcuts">
+            <p class="shortcuts-label">Ir a</p>
+            <div class="shortcuts-row">
+                <button type="button" class="btn-shortcut" onclick="showSection('cafes')"><i class="fas fa-map-marker-alt"></i> Cafeterías</button>
+                <button type="button" class="btn-shortcut" onclick="showSection('orders')"><i class="fas fa-receipt"></i> Órdenes</button>
+                <button type="button" class="btn-shortcut" onclick="showSection('rewards')"><i class="fas fa-gift"></i> Recompensas</button>
+                <button type="button" class="btn-shortcut" onclick="showSection('reviews')"><i class="fas fa-comments"></i> Reseñas</button>
+            </div>
+        </div>
+
+        <div class="dashboard-patterns">
+            <h3 class="dashboard-patterns-title"><i class="fas fa-diagram-project"></i> Patrones enlazados al backend</h3>
+            <p id="dashboardPatternSummary" class="dashboard-pattern-line"></p>
+            <p id="dashboardApiInfoLine" class="dashboard-pattern-line muted"></p>
+
+            <div class="pattern-card" id="stampStrategyPanel">
+                <h4><i class="fas fa-shuffle"></i> Strategy — reglas de sellos</h4>
+                <p class="pattern-card-sub">Lectura: <code>GET /api/stamps/rule/current</code> · Cambio: <code>POST /api/stamps/rule</code> (cuerpo <code>{ "rule": "basic" | "double" | "loyalty" }</code>)</p>
+                <p id="stampRuleCurrentName" class="stamp-rule-name">—</p>
+                <p id="stampRuleCurrentDesc" class="stamp-rule-desc">—</p>
+                <div class="stamp-rule-controls">
+                    <label for="stampRuleSelect">Regla activa (demo)</label>
+                    <select id="stampRuleSelect">
+                        <option value="basic">Básica</option>
+                        <option value="double">Doble</option>
+                        <option value="loyalty">Lealtad</option>
+                    </select>
+                    <button type="button" class="btn-primary btn-sm" id="stampRuleApplyBtn">Aplicar en servidor</button>
+                </div>
+                <p class="pattern-card-sub">Cambios recientes (contexto Strategy en memoria)</p>
+                <ul id="stampRuleHistoryList" class="stamp-rule-history"></ul>
+            </div>
+        </div>
+    </section>
+
     <!-- Hero Section -->
-    <section id="home" class="hero">
+    <section id="home" class="hero hidden">
         <div class="hero-content">
             <h1>Tu Aventura <span class="highlight">Cafetera</span> Comienza Aquí</h1>
             <p>Descubre nuevas cafeterías, acumula sellos y obtén recompensas increíbles</p>
             <div class="hero-stats">
                 <div class="stat">
                     <i class="fas fa-stamp"></i>
-                    <span class="stat-number" id="totalStamps">12</span>
+                    <span class="stat-number" id="totalStamps">0</span>
                     <span class="stat-label">Sellos</span>
                 </div>
                 <div class="stat">
                     <i class="fas fa-store"></i>
-                    <span class="stat-number" id="totalCafes">5</span>
+                    <span class="stat-number" id="totalCafes">0</span>
                     <span class="stat-label">Cafeterías</span>
                 </div>
                 <div class="stat">
                     <i class="fas fa-star"></i>
-                    <span class="stat-number" id="totalReviews">8</span>
+                    <span class="stat-number" id="totalReviews">0</span>
                     <span class="stat-label">Reseñas</span>
                 </div>
             </div>
@@ -63,13 +176,12 @@
                     <span>PASAPORTE CAFETERO</span>
                 </div>
                 <div class="passport-stamps" id="passportPreview">
-                    <!-- Los sellos se agregan dinámicamente -->
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Passport Section -->
+    <!-- Passaporte -->
     <section id="passport" class="section passport-section hidden">
         <h2><i class="fas fa-passport"></i> Mi Pasaporte</h2>
         <div class="passport-container">
@@ -77,65 +189,72 @@
                 <div class="passport-page">
                     <h3>Sellos Coleccionados</h3>
                     <div class="stamps-grid" id="stampsGrid">
-                        <!-- Los sellos se cargan dinámicamente -->
                     </div>
                 </div>
                 <div class="passport-progress">
-                    <h4>Progreso hacia próxima recompensa</h4>
+                    <h4>Progreso hacia la próxima recompensa</h4>
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
-                    <p><span id="currentStamps">12</span> / 15 sellos para café gratis</p>
+                    <p><span id="currentStamps">0</span> sellos · Próximo hito: <span id="nextRewardLabel">—</span></p>
+                    <div class="passport-stamp-api">
+                        <p class="pattern-card-sub"><i class="fas fa-plug"></i> <strong>Registrar visita</strong> usa <code>POST /api/stamps</code> con <code>orderTotal</code> (útil si el servidor aplica reglas según monto).</p>
+                        <label for="visitOrderTotal">Monto simulado de la visita (MXN)</label>
+                        <input type="number" id="visitOrderTotal" min="0" step="0.5" value="0" class="input-visit-total" />
+                    </div>
                 </div>
             </div>
-            <div class="rewards-panel">
-                <h3><i class="fas fa-gift"></i> Recompensas Disponibles</h3>
-                <div class="reward-card">
-                    <div class="reward-icon"><i class="fas fa-mug-hot"></i></div>
-                    <div class="reward-info">
-                        <h4>Café Gratis</h4>
-                        <p>15 sellos</p>
-                    </div>
-                    <span class="reward-status locked">3 más</span>
-                </div>
-                <div class="reward-card">
-                    <div class="reward-icon"><i class="fas fa-cookie"></i></div>
-                    <div class="reward-info">
-                        <h4>Postre Gratis</h4>
-                        <p>25 sellos</p>
-                    </div>
-                    <span class="reward-status locked">13 más</span>
-                </div>
-                <div class="reward-card available">
-                    <div class="reward-icon"><i class="fas fa-percent"></i></div>
-                    <div class="reward-info">
-                        <h4>10% Descuento</h4>
-                        <p>10 sellos</p>
-                    </div>
-                    <span class="reward-status">¡Disponible!</span>
-                </div>
+            <div class="rewards-panel rewards-panel-compact">
+                <h3><i class="fas fa-gift"></i> Recompensas (resumen)</h3>
+                <div id="rewardsCompactInPassport"></div>
+                <button type="button" class="btn-link-dash" onclick="showSection('rewards')">
+                    Ver página de recompensas <i class="fas fa-arrow-right"></i>
+                </button>
             </div>
         </div>
     </section>
 
-    <!-- Cafes Section -->
+    <!-- Recompensas -->
+    <section id="rewards" class="section rewards-page hidden">
+        <div class="rewards-page-header">
+            <h2><i class="fas fa-trophy"></i> Recompensas</h2>
+            <p class="section-subtitle academic-subtitle">Progreso basado en sellos acumulados en tu pasaporte (demostración).</p>
+        </div>
+        <div class="rewards-hero-card">
+            <div class="rewards-hero-stat">
+                <span class="rewards-hero-number" id="rewardsHeroStamps">0</span>
+                <span class="rewards-hero-caption">sellos actuales</span>
+            </div>
+            <div class="rewards-hero-next">
+                <p class="rewards-next-title">Siguiente meta</p>
+                <p class="rewards-next-value" id="rewardsNextMeta">—</p>
+                <div class="progress-bar progress-bar-wide">
+                    <div class="progress-fill" id="rewardsProgressFill"></div>
+                </div>
+                <p class="rewards-next-detail" id="rewardsNextDetail"></p>
+            </div>
+        </div>
+        <div class="rewards-tier-grid" id="rewardsTierGrid">
+        </div>
+    </section>
+
+    <!-- Cafeterías -->
     <section id="cafes" class="section cafes-section hidden">
         <h2><i class="fas fa-store"></i> Cafeterías</h2>
         <div class="cafes-grid" id="cafesGrid">
-            <!-- Las cafeterías se cargan dinámicamente -->
         </div>
     </section>
 
-    <!-- Customize Beverage Section (Decorator Pattern) -->
+    <!-- Personalizar Bebida (Decorator Pattern) -->
     <section id="customize" class="section customize-section hidden">
         <h2><i class="fas fa-wand-magic-sparkles"></i> Personaliza tu Bebida</h2>
         <p class="section-subtitle">
-            <i class="fas fa-code"></i> Esta sección demuestra el <strong>Patrón Decorator</strong> - 
-            cada extra envuelve la bebida agregando funcionalidad dinámicamente
+            <i class="fas fa-code"></i> Esta sección demuestra el <strong>Patrón Decorator</strong> -
+            cada extra envuelve la bebida agregando funcionalidad dinámicamente. Cálculo en vivo: <code>POST /api/beverages/customize</code>.
         </p>
+        <p id="apiBeverageOptionsHint" class="api-pattern-hint hidden" role="status"></p>
         
         <div class="customize-container">
-            <!-- Base Beverage Selection -->
             <div class="customize-panel base-panel">
                 <h3><i class="fas fa-coffee"></i> Bebida Base</h3>
                 <div class="base-beverages" id="baseBeverages">
@@ -169,23 +288,21 @@
                 <div class="size-selector">
                     <h4><i class="fas fa-arrows-up-down"></i> Tamaño</h4>
                     <div class="size-options" id="sizeOptions">
-                        <button class="size-btn" data-size="small">Chico</button>
-                        <button class="size-btn selected" data-size="medium">Mediano</button>
-                        <button class="size-btn" data-size="large">Grande</button>
+                        <button type="button" class="size-btn" data-size="small">Chico</button>
+                        <button type="button" class="size-btn selected" data-size="medium">Mediano</button>
+                        <button type="button" class="size-btn" data-size="large">Grande</button>
                     </div>
                 </div>
             </div>
             
-            <!-- Extras (Decorators) -->
             <div class="customize-panel extras-panel">
                 <h3><i class="fas fa-plus-circle"></i> Extras (Decoradores)</h3>
                 <div class="extras-grid" id="extrasGrid">
-                    <!-- Milk Options -->
                     <div class="extra-option" data-type="milk" data-milk-type="almendra">
                         <div class="extra-icon"><i class="fas fa-seedling"></i></div>
                         <div class="extra-info">
                             <span class="extra-name">Leche de Almendra</span>
-                            <span class="extra-price">+$0.75</span>
+                            <span class="extra-price">+$0.60</span>
                         </div>
                         <div class="extra-check"><i class="fas fa-check"></i></div>
                     </div>
@@ -193,7 +310,7 @@
                         <div class="extra-icon"><i class="fas fa-leaf"></i></div>
                         <div class="extra-info">
                             <span class="extra-name">Leche de Avena</span>
-                            <span class="extra-price">+$0.75</span>
+                            <span class="extra-price">+$0.70</span>
                         </div>
                         <div class="extra-check"><i class="fas fa-check"></i></div>
                     </div>
@@ -201,17 +318,15 @@
                         <div class="extra-icon"><i class="fas fa-droplet"></i></div>
                         <div class="extra-info">
                             <span class="extra-name">Leche de Soya</span>
-                            <span class="extra-price">+$0.75</span>
+                            <span class="extra-price">+$0.50</span>
                         </div>
                         <div class="extra-check"><i class="fas fa-check"></i></div>
                     </div>
-                    
-                    <!-- Extra Shot -->
                     <div class="extra-option" data-type="extraShot" data-shots="1">
                         <div class="extra-icon"><i class="fas fa-bolt"></i></div>
                         <div class="extra-info">
                             <span class="extra-name">Shot Extra</span>
-                            <span class="extra-price">+$0.80</span>
+                            <span class="extra-price">+$0.75</span>
                         </div>
                         <div class="extra-check"><i class="fas fa-check"></i></div>
                     </div>
@@ -219,22 +334,18 @@
                         <div class="extra-icon"><i class="fas fa-bolt-lightning"></i></div>
                         <div class="extra-info">
                             <span class="extra-name">Doble Shot Extra</span>
-                            <span class="extra-price">+$1.60</span>
+                            <span class="extra-price">+$1.50</span>
                         </div>
                         <div class="extra-check"><i class="fas fa-check"></i></div>
                     </div>
-                    
-                    <!-- Whipped Cream -->
                     <div class="extra-option" data-type="whippedCream">
                         <div class="extra-icon"><i class="fas fa-cloud"></i></div>
                         <div class="extra-info">
                             <span class="extra-name">Crema Batida</span>
-                            <span class="extra-price">+$0.60</span>
+                            <span class="extra-price">+$0.50</span>
                         </div>
                         <div class="extra-check"><i class="fas fa-check"></i></div>
                     </div>
-                    
-                    <!-- Flavor Syrups -->
                     <div class="extra-option" data-type="flavorSyrup" data-flavor="vainilla">
                         <div class="extra-icon"><i class="fas fa-jar"></i></div>
                         <div class="extra-info">
@@ -255,12 +366,10 @@
                         <div class="extra-icon"><i class="fas fa-nut"></i></div>
                         <div class="extra-info">
                             <span class="extra-name">Jarabe Avellana</span>
-                            <span class="extra-price">+$0.50</span>
+                            <span class="extra-price">+$0.55</span>
                         </div>
                         <div class="extra-check"><i class="fas fa-check"></i></div>
                     </div>
-                    
-                    <!-- Size Upgrade -->
                     <div class="extra-option" data-type="sizeUpgrade">
                         <div class="extra-icon"><i class="fas fa-expand"></i></div>
                         <div class="extra-info">
@@ -272,7 +381,6 @@
                 </div>
             </div>
             
-            <!-- Result Panel -->
             <div class="customize-panel result-panel">
                 <h3><i class="fas fa-receipt"></i> Tu Bebida Personalizada</h3>
                 <div class="result-card" id="customizeResult">
@@ -304,22 +412,33 @@
                     </div>
                 </div>
                 
-                <button class="btn-primary btn-add-to-order" onclick="addCustomBeverageToOrder()">
+                <button type="button" class="btn-primary btn-add-to-order" onclick="addCustomBeverageToOrder()">
                     <i class="fas fa-cart-plus"></i> Agregar a Orden
                 </button>
             </div>
         </div>
     </section>
 
-    <!-- Orders Section -->
+    <!-- Ordenes -->
     <section id="orders" class="section orders-section hidden">
-        <h2><i class="fas fa-receipt"></i> Mis Órdenes</h2>
+        <div class="orders-page-header">
+            <div>
+                <h2><i class="fas fa-receipt"></i> Mis órdenes</h2>
+                <p class="section-subtitle academic-subtitle">Historial y nueva orden · <code>GET/POST /api/orders</code></p>
+            </div>
+            <div class="orders-summary-badges">
+                <span class="summary-badge"><i class="fas fa-list"></i> <span id="ordersCountBadge">0</span> órdenes</span>
+                <span class="summary-badge summary-badge-accent"><i class="fas fa-coins"></i> Total: <span id="ordersSumBadge">$0.00</span></span>
+            </div>
+        </div>
         <div class="orders-container">
-            <div class="orders-list" id="ordersList">
-                <!-- Las órdenes se cargan dinámicamente -->
+            <div class="orders-column">
+                <h3 class="orders-column-title"><i class="fas fa-clock-rotate-left"></i> Historial</h3>
+                <div class="orders-list" id="ordersList">
+                </div>
             </div>
             <div class="new-order-panel">
-                <h3><i class="fas fa-plus-circle"></i> Nueva Orden</h3>
+                <h3><i class="fas fa-plus-circle"></i> Nueva orden</h3>
                 <form id="newOrderForm">
                     <div class="form-group">
                         <label>Cafetería</label>
@@ -328,9 +447,15 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Productos</label>
+                        <label for="orderTypeSelect">Tipo de orden → <code>POST /api/orders</code> · <code>type</code></label>
+                        <select id="orderTypeSelect">
+                            <option value="dine-in">En local (dine-in)</option>
+                            <option value="takeout">Para llevar (takeout)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Productos (<code>ProductFactory</code> vía ítems con <code>type</code> + datos)</label>
                         <div class="products-selector" id="productsSelector">
-                            <!-- Productos dinámicos -->
                         </div>
                     </div>
                     <div class="order-summary">
@@ -342,10 +467,26 @@
                         </div>
                     </div>
                     <button type="submit" class="btn-primary">
-                        <i class="fas fa-check"></i> Confirmar Orden
+                        <i class="fas fa-check"></i> Confirmar orden
                     </button>
                 </form>
             </div>
+        </div>
+    </section>
+
+    <!-- Reseñas -->
+    <section id="reviews" class="section reviews-section hidden">
+        <div class="reviews-page-header">
+            <h2><i class="fas fa-comments"></i> Mis reseñas</h2>
+            <p class="section-subtitle academic-subtitle">Listado: <code>GET /api/reviews?userId=…</code>. Edición y Memento: <code>PUT</code>, <code>GET …/history</code>, <code>POST …/undo</code>.</p>
+        </div>
+        <div class="reviews-toolbar">
+            <span class="reviews-count-pill"><i class="fas fa-star"></i> <span id="reviewsCountPill">0</span> reseñas</span>
+            <button type="button" class="btn-secondary btn-sm" onclick="showSection('cafes')">
+                <i class="fas fa-store"></i> Ir a cafeterías
+            </button>
+        </div>
+        <div class="reviews-list" id="reviewsList">
         </div>
     </section>
 
@@ -353,12 +494,13 @@
     <div id="reviewModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-star"></i> Escribir Reseña</h3>
-                <button class="close-modal" onclick="closeModal()">
+                <h3 id="reviewModalTitle"><i class="fas fa-star"></i> Escribir reseña</h3>
+                <button type="button" class="close-modal" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <form id="reviewForm">
+                <input type="hidden" id="reviewEditId" value="">
                 <input type="hidden" id="reviewCafeId">
                 <div class="form-group">
                     <label>Calificación</label>
@@ -392,14 +534,28 @@
                         <i class="fas fa-redo"></i> Rehacer
                     </button>
                 </div>
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-paper-plane"></i> Publicar Reseña
+                <button type="submit" class="btn-primary" id="reviewSubmitBtn">
+                    <i class="fas fa-paper-plane"></i> Publicar reseña
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- Toast Notifications -->
+    <div id="reviewHistoryModal" class="modal hidden">
+        <div class="modal-content modal-content-wide">
+            <div class="modal-header">
+                <h3><i class="fas fa-clock-rotate-left"></i> Historial (Memento)</h3>
+                <button type="button" class="close-modal" onclick="closeReviewHistoryModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="pattern-card-sub">Fuente: <code>GET /api/reviews/:reviewId/history</code> · Deshacer persistido: <code>POST /api/reviews/:reviewId/undo</code></p>
+            <div id="reviewHistoryBody" class="review-history-body"></div>
+        </div>
+    </div>
+
+    </div><!-- /appShell -->
+
     <div id="toast" class="toast hidden">
         <i class="fas fa-check-circle"></i>
         <span id="toastMessage"></span>

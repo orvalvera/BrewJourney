@@ -26,18 +26,114 @@ import { BasicStampRule } from './BrewJourney/patterns/strategy/BasicStampRule.j
 import { DoubleStampRule } from './BrewJourney/patterns/strategy/DoubleStampRule.js';
 import { LoyaltyBonusRule } from './BrewJourney/patterns/strategy/LoyaltyBonusRule.js';
 
+import { signUserToken, authenticateToken, validateDemoLogin } from './middleware/auth.js';
+
+function getSizeName(size) {
+    const names = { small: 'Chico', medium: 'Mediano', large: 'Grande' };
+    return names[size] || 'Mediano';
+}
+
+const MILK_TYPE_ALIASES = {
+    almendra: 'almond',
+    avena: 'oat',
+    soya: 'soy',
+    coco: 'coconut',
+    coconut: 'coconut',
+    almond: 'almond',
+    oat: 'oat',
+    soy: 'soy',
+    regular: 'regular'
+};
+
+function normalizeMilkTypeKey(raw) {
+    if (!raw || raw === 'regular') return 'regular';
+    const k = String(raw).toLowerCase();
+    const key = MILK_TYPE_ALIASES[k] || (MilkDecorator.MILK_TYPES[k] ? k : null) || 'regular';
+    return MilkDecorator.MILK_TYPES[key] ? key : 'regular';
+}
+
+/** Jarabes en `index.html` (vainilla, caramelo, …) vs claves en FlavorSyrupDecorator. */
+const FLAVOR_ALIASES = {
+    vainilla: 'vanilla',
+    caramelo: 'caramel',
+    avellana: 'hazelnut',
+    canela: 'cinnamon',
+    chocolate: 'mocha'
+};
+
+function normalizeFlavorKey(raw) {
+    if (!raw) return 'vanilla';
+    const k = String(raw).toLowerCase();
+    const key = FLAVOR_ALIASES[k] || (FlavorSyrupDecorator.FLAVORS[k] ? k : null) || 'vanilla';
+    return FlavorSyrupDecorator.FLAVORS[key] ? key : 'vanilla';
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('frontend'));
+
+/** Rutas públicas de la API: login JWT y listado de usuarios (demo). El resto exige Bearer token. */
+function apiAuthGate(req, res, next) {
+    if (!req.path.startsWith('/api')) return next();
+    if (req.method === 'POST' && req.path === '/api/auth/login') return next();
+    if (req.method === 'GET' && req.path === '/api/users') return next();
+    return authenticateToken(req, res, next);
+}
+
+app.use(apiAuthGate);
 
 // Contexto de estrategia de sellos (singleton)
 const stampRuleContext = new StampRuleContext(new BasicStampRule());
 
 // ===== RUTAS API =====
+
+// --- Autenticación JWT (demo) ---
+app.post('/api/auth/login', (req, res) => {
+    const { userId, password } = req.body || {};
+    if (!userId || !validateDemoLogin(password)) {
+        return res.status(401).json({ error: 'Credenciales inválidas (demo: password "demo")' });
+    }
+    const user = database.getUserById(userId);
+    if (!user) {
+        return res.status(401).json({ error: 'Usuario no encontrado' });
+    }
+    const token = signUserToken(user);
+    const stats = database.getUserStats(user.id);
+    res.json({
+        token,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar
+        },
+        stats: {
+            totalStamps: stats.totalStamps,
+            totalOrders: stats.totalOrders,
+            totalReviews: stats.totalReviews,
+            cafesVisited: stats.cafesVisited,
+            totalSpent: stats.totalSpent
+        }
+    });
+});
+
+app.get('/api/auth/me', (req, res) => {
+    const user = database.getUserById(req.user.sub);
+    if (!user) {
+        return res.status(401).json({ error: 'Usuario del token no existe' });
+    }
+    const stats = database.getUserStats(user.id);
+    res.json({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        ...stats
+    });
+});
 
 // --- Cafeterías ---
 app.get('/api/cafes', (req, res) => {
@@ -130,31 +226,40 @@ app.post('/api/beverages/customize', (req, res) => {
         // Procesar extras array
         extras.forEach(extra => {
             switch (extra.type) {
-                case 'milk':
-                    beverage = new MilkDecorator(beverage, extra.milkType);
-                    breakdown.push({ item: `Leche de ${capitalize(extra.milkType)}`, price: 0.75 });
-                    decoratorChain.push(`MilkDecorator("${extra.milkType}")`);
-                    descriptions.push(`leche de ${extra.milkType}`);
+                case 'milk': {
+                    const milkKey = normalizeMilkTypeKey(extra.milkType);
+                    beverage = new MilkDecorator(beverage, milkKey);
+                    const milkMeta = MilkDecorator.MILK_TYPES[milkKey];
+                    const milkLabel = milkMeta.price === 0 ? 'Leche regular' : milkMeta.name;
+                    breakdown.push({ item: milkLabel, price: milkMeta.price });
+                    decoratorChain.push(`MilkDecorator("${milkKey}")`);
+                    descriptions.push(milkMeta.price === 0 ? 'leche regular' : milkMeta.name.toLowerCase());
                     break;
-                case 'extraShot':
-                    beverage = new ExtraShotDecorator(beverage, extra.shots || 1);
-                    const shotPrice = 0.80 * (extra.shots || 1);
-                    breakdown.push({ item: `${extra.shots || 1} Shot(s) Extra`, price: shotPrice });
-                    decoratorChain.push(`ExtraShotDecorator(${extra.shots || 1})`);
-                    descriptions.push(`${extra.shots || 1} shot${(extra.shots || 1) > 1 ? 's' : ''} extra`);
+                }
+                case 'extraShot': {
+                    const shots = extra.shots || 1;
+                    beverage = new ExtraShotDecorator(beverage, shots);
+                    const shotPrice = ExtraShotDecorator.PRICE_PER_SHOT * shots;
+                    breakdown.push({ item: `${shots} Shot(s) Extra`, price: shotPrice });
+                    decoratorChain.push(`ExtraShotDecorator(${shots})`);
+                    descriptions.push(`${shots} shot${shots > 1 ? 's' : ''} extra`);
                     break;
+                }
                 case 'whippedCream':
                     beverage = new WhippedCreamDecorator(beverage);
-                    breakdown.push({ item: 'Crema Batida', price: 0.60 });
+                    breakdown.push({ item: 'Crema Batida', price: WhippedCreamDecorator.PRICE });
                     decoratorChain.push('WhippedCreamDecorator()');
                     descriptions.push('crema batida');
                     break;
-                case 'flavorSyrup':
-                    beverage = new FlavorSyrupDecorator(beverage, extra.flavor);
-                    breakdown.push({ item: `Jarabe ${capitalize(extra.flavor)}`, price: 0.50 });
-                    decoratorChain.push(`FlavorSyrupDecorator("${extra.flavor}")`);
-                    descriptions.push(`jarabe de ${extra.flavor}`);
+                case 'flavorSyrup': {
+                    const flavorKey = normalizeFlavorKey(extra.flavor);
+                    const flav = FlavorSyrupDecorator.FLAVORS[flavorKey];
+                    beverage = new FlavorSyrupDecorator(beverage, flavorKey);
+                    breakdown.push({ item: `Jarabe ${flav.name}`, price: flav.price });
+                    decoratorChain.push(`FlavorSyrupDecorator("${flavorKey}")`);
+                    descriptions.push(`jarabe ${flav.name.toLowerCase()}`);
                     break;
+                }
                 case 'sizeUpgrade':
                     beverage = new SizeUpgradeDecorator(beverage);
                     breakdown.push({ item: 'Tamaño Extra', price: 1.00 });
@@ -189,8 +294,9 @@ app.post('/api/beverages/customize', (req, res) => {
     
     // Aplicar decoradores según las opciones
     if (milk && milk !== 'regular') {
-        beverage = new MilkDecorator(beverage, milk);
-        appliedDecorators.push(`Leche: ${milk}`);
+        const milkKey = normalizeMilkTypeKey(milk);
+        beverage = new MilkDecorator(beverage, milkKey);
+        appliedDecorators.push(`Leche: ${milkKey}`);
     }
     
     if (extraShots && extraShots > 0) {
@@ -199,8 +305,9 @@ app.post('/api/beverages/customize', (req, res) => {
     }
     
     if (flavor) {
-        beverage = new FlavorSyrupDecorator(beverage, flavor);
-        appliedDecorators.push(`Sabor: ${flavor}`);
+        const flavorKey = normalizeFlavorKey(flavor);
+        beverage = new FlavorSyrupDecorator(beverage, flavorKey);
+        appliedDecorators.push(`Sabor: ${flavorKey}`);
     }
     
     if (whippedCream) {
@@ -221,17 +328,6 @@ app.post('/api/beverages/customize', (req, res) => {
         pattern: 'Decorator Pattern - Cada extra es un decorador que envuelve la bebida base'
     });
 });
-
-// Helper functions
-function getSizeName(size) {
-    const names = { small: 'Chico', medium: 'Mediano', large: 'Grande' };
-    return names[size] || 'Mediano';
-}
-
-function capitalize(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 app.get('/api/products/types', (req, res) => {
     res.json({
@@ -634,6 +730,9 @@ app.get('/api/stats/:userId', (req, res) => {
     res.json(stats);
 });
 
+// Frontend estático después de las rutas /api (serve-static no enruta POST a /api/*).
+app.use(express.static('frontend'));
+
 // ===== Iniciar Servidor =====
 app.listen(PORT, () => {
     console.log(`
@@ -643,6 +742,7 @@ app.listen(PORT, () => {
 ║  API:      http://localhost:${PORT}/api                    ║
 ║  Frontend: http://localhost:${PORT}                        ║
 ╠══════════════════════════════════════════════════════════╣
+║  Autenticación: JWT (POST /api/auth/login, demo password) ║
 ║  Base de datos: lowdb (data/db.json)                     ║
 ║  Patrones implementados:                                 ║
 ║    • Factory Method (productos y órdenes)                ║

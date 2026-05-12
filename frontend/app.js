@@ -1,14 +1,115 @@
 // ===== BrewJourney - Frontend Application =====
 
 const API_URL = 'http://localhost:3000/api';
+const SESSION_KEY = 'brewjourney_user';
+const JWT_STORAGE_KEY = 'brewjourney_jwt';
+const LOGIN_DEMO_PASSWORD = 'demo';
+
+/** Precios offline — alineados con BeverageExtras.js; claves como en HTML (español) o en decoradores (inglés). */
+const LOCAL_EXTRA_PRICING = {
+    shotPerUnit: 0.75,
+    whippedCream: 0.50,
+    sizeUpgrade: 1.0,
+    milk(type) {
+        const aliases = {
+            almendra: 'almond',
+            avena: 'oat',
+            soya: 'soy',
+            coco: 'coconut',
+            almond: 'almond',
+            oat: 'oat',
+            soy: 'soy',
+            coconut: 'coconut',
+            regular: 'regular'
+        };
+        const k = aliases[String(type || '').toLowerCase()] || String(type || '').toLowerCase();
+        const map = { regular: 0, almond: 0.6, oat: 0.7, soy: 0.5, coconut: 0.65 };
+        return map[k] ?? 0;
+    },
+    flavor(name) {
+        const aliases = {
+            vainilla: 'vanilla',
+            caramelo: 'caramel',
+            avellana: 'hazelnut',
+            canela: 'cinnamon',
+            chocolate: 'mocha'
+        };
+        const k = aliases[String(name || '').toLowerCase()] || String(name || '').toLowerCase();
+        const map = {
+            vanilla: 0.5,
+            caramel: 0.5,
+            hazelnut: 0.55,
+            mocha: 0.5,
+            cinnamon: 0.45,
+            pumpkinSpice: 0.65
+        };
+        return map[k] ?? 0.5;
+    }
+};
+
+function getStoredToken() {
+    try {
+        return localStorage.getItem(JWT_STORAGE_KEY);
+    } catch (e) {
+        return null;
+    }
+}
+
+function setStoredToken(token) {
+    try {
+        if (token) localStorage.setItem(JWT_STORAGE_KEY, token);
+        else localStorage.removeItem(JWT_STORAGE_KEY);
+    } catch (e) { /* ignore */ }
+}
+
+async function tryJson(res) {
+    if (!res || !res.ok) return null;
+    return res.json();
+}
+
+/**
+ * Peticiones autenticadas: adjunta Bearer desde localStorage.
+ * Si el servidor responde 401, limpia token + sesión y vuelve al login.
+ */
+async function apiFetch(path, options = {}) {
+    const pathPart = String(path).replace(/^\//, '');
+    const url = `${API_URL}/${pathPart}`;
+    const token = getStoredToken();
+    const headers = {
+        ...(options.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 401) {
+        setStoredToken(null);
+        localStorage.removeItem(SESSION_KEY);
+        state.user = null;
+        appListenersBound = false;
+        showLoginScreen();
+        showToast('Sesión expirada o no autorizada', 'error');
+    }
+    return res;
+}
+
+/** Hitos de recompensa (demostración académica) */
+const REWARD_TIERS = [
+    { stamps: 10, title: '10% descuento', icon: 'fa-percent', desc: 'Recompensa al acumular 10 sellos' },
+    { stamps: 15, title: 'Café gratis', icon: 'fa-mug-hot', desc: 'Canje al llegar a 15 sellos' },
+    { stamps: 25, title: 'Postre gratis', icon: 'fa-cookie-bite', desc: 'Canje al llegar a 25 sellos' }
+];
+
+const FALLBACK_USERS = [
+    { id: 'u1', name: 'Samuel Orval', email: 'orval@brewjourney.com', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Samuel' },
+    { id: 'u2', name: 'Karla Nava', email: 'karla@brewjourney.com', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Karla' },
+    { id: 'u3', name: 'Ximena García', email: 'ximena@brewjourney.com', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ximena' },
+    { id: 'u4', name: 'Jesús Escobar', email: 'jesus@brewjourney.com', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jesus' }
+];
 
 // ===== Estado de la Aplicación =====
 const state = {
-    user: {
-        id: 'u1',
-        name: 'Samuel Orval',
-        email: 'orval@brewjourney.com'
-    },
+    user: null,
+    userStats: null,
+    reviews: [],
     cafes: [],
     orders: [],
     stamps: [],
@@ -24,8 +125,15 @@ const state = {
         basePrice: 4.50,
         size: 'medium',
         extras: []
-    }
+    },
+    products: [],
+    stampRule: null,
+    productFactoryTypes: [],
+    apiBeverageOptions: null,
+    apiInfo: null
 };
+
+let appListenersBound = false;
 
 // ===== Datos de Ejemplo (cuando no hay backend) =====
 const mockData = {
@@ -66,6 +174,7 @@ const mockData = {
     orders: [
         {
             id: 'dine-in_001',
+            userId: 'u1',
             cafe: { id: 'c1', name: 'Starbucks' },
             products: [
                 { name: 'Cappuccino', price: 4.50 },
@@ -73,10 +182,12 @@ const mockData = {
             ],
             total: 7.50,
             status: 'completed',
+            orderType: 'dine-in',
             date: '2026-02-24'
         },
         {
             id: 'takeout_002',
+            userId: 'u1',
             cafe: { id: 'c2', name: 'The Italian Coffee' },
             products: [
                 { name: 'Latte', price: 4.00 },
@@ -84,6 +195,7 @@ const mockData = {
             ],
             total: 10.00,
             status: 'completed',
+            orderType: 'takeout',
             date: '2026-02-23'
         }
     ],
@@ -99,47 +211,293 @@ const mockData = {
     ]
 };
 
-// ===== Inicialización =====
+// ===== Inicialización y sesión =====
 document.addEventListener('DOMContentLoaded', () => {
-    initApp();
+    setupLoginAndLogout();
+    void tryRestoreSession();
 });
 
-async function initApp() {
+function setupLoginAndLogout() {
+    const form = document.getElementById('loginForm');
+    if (form) form.addEventListener('submit', handleLoginSubmit);
+    const btn = document.getElementById('btnLogout');
+    if (btn) btn.addEventListener('click', logout);
+}
+
+async function tryRestoreSession() {
+    const token = getStoredToken();
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!token || !raw) {
+        showLoginScreen();
+        return;
+    }
     try {
-        // Intentar cargar datos del backend
+        const res = await fetch(`${API_URL}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('unauthorized');
+        const data = await res.json();
+        state.user = {
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            avatar: data.avatar
+        };
+        state.userStats = {
+            totalStamps: data.totalStamps,
+            totalOrders: data.totalOrders,
+            totalReviews: data.totalReviews,
+            cafesVisited: data.cafesVisited,
+            totalSpent: data.totalSpent
+        };
+        showAppShell();
+        await initApp();
+    } catch (e) {
+        console.warn('Sesión JWT no restaurada', e);
+        setStoredToken(null);
+        localStorage.removeItem(SESSION_KEY);
+        showLoginScreen();
+    }
+}
+
+function showLoginScreen() {
+    const login = document.getElementById('loginScreen');
+    const shell = document.getElementById('appShell');
+    if (login) login.classList.remove('hidden');
+    if (shell) shell.classList.add('hidden');
+    populateLoginUserSelect();
+}
+
+function showAppShell() {
+    const login = document.getElementById('loginScreen');
+    const shell = document.getElementById('appShell');
+    if (login) login.classList.add('hidden');
+    if (shell) shell.classList.remove('hidden');
+    updateNavUser();
+}
+
+async function populateLoginUserSelect() {
+    const select = document.getElementById('loginUserSelect');
+    if (!select) return;
+    select.innerHTML = '';
+    try {
+        const res = await fetch(`${API_URL}/users`);
+        if (res.ok) {
+            const users = await res.json();
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = u.name;
+                opt.dataset.avatar = u.avatar || '';
+                opt.dataset.email = u.email || '';
+                select.appendChild(opt);
+            });
+            return;
+        }
+    } catch (e) {
+        console.log('API usuarios no disponible, lista local');
+    }
+    FALLBACK_USERS.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = u.name;
+        opt.dataset.avatar = u.avatar;
+        opt.dataset.email = u.email;
+        select.appendChild(opt);
+    });
+}
+
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const select = document.getElementById('loginUserSelect');
+    const pwd = (document.getElementById('loginPassword')?.value || '').trim();
+    if (pwd !== LOGIN_DEMO_PASSWORD) {
+        showToast(`Contraseña incorrecta. Usa: ${LOGIN_DEMO_PASSWORD}`, 'error');
+        return;
+    }
+    const userId = select.value;
+    try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, password: pwd })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            showToast(data.error || 'No se pudo iniciar sesión', 'error');
+            return;
+        }
+        setStoredToken(data.token);
+        state.user = data.user;
+        state.userStats = data.stats || null;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(state.user));
+    } catch (err) {
+        showToast('No se pudo contactar al servidor (¿npm start?)', 'error');
+        return;
+    }
+    const pwdInput = document.getElementById('loginPassword');
+    if (pwdInput) pwdInput.value = '';
+    showAppShell();
+    await initApp();
+}
+
+function logout() {
+    setStoredToken(null);
+    localStorage.removeItem(SESSION_KEY);
+    appListenersBound = false;
+    state.user = null;
+    state.userStats = null;
+    state.reviews = [];
+    state.orders = [];
+    state.stamps = [];
+    state.cafes = [];
+    showLoginScreen();
+    const pwd = document.getElementById('loginPassword');
+    if (pwd) pwd.value = '';
+}
+
+function updateNavUser() {
+    if (!state.user) return;
+    const nameEl = document.getElementById('navUserName');
+    const imgEl = document.getElementById('navUserAvatar');
+    if (nameEl) nameEl.textContent = state.user.name;
+    if (imgEl) {
+        imgEl.src = state.user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(state.user.name)}`;
+        imgEl.alt = state.user.name;
+    }
+}
+
+async function initApp() {
+    if (!state.user) return;
+    try {
         await loadData();
     } catch (error) {
+        if (!state.user) return;
         console.log('Backend no disponible, usando datos mock');
         useMockData();
     }
-    
     renderAll();
     setupEventListeners();
+    showSection('dashboard');
 }
 
 async function loadData() {
-    const response = await fetch(`${API_URL}/cafes`);
+    if (!state.user) throw new Error('No user');
+
+    const response = await apiFetch('cafes');
     if (!response.ok) throw new Error('Backend not available');
-    
+
     state.cafes = await response.json();
-    
-    const ordersRes = await fetch(`${API_URL}/orders`);
-    state.orders = await ordersRes.json();
-    
-    const stampsRes = await fetch(`${API_URL}/stamps/${state.user.id}`);
-    state.stamps = await stampsRes.json();
+
+    const ordersRes = await apiFetch(`orders?userId=${encodeURIComponent(state.user.id)}`);
+    if (ordersRes.ok) {
+        state.orders = await ordersRes.json();
+    }
+
+    const stampsRes = await apiFetch(`stamps/${state.user.id}`);
+    if (stampsRes.ok) {
+        state.stamps = await stampsRes.json();
+    }
+
+    const statsRes = await apiFetch(`stats/${state.user.id}`);
+    if (statsRes.ok) {
+        state.userStats = await statsRes.json();
+    }
+
+    const reviewsRes = await apiFetch(`reviews?userId=${encodeURIComponent(state.user.id)}`);
+    if (reviewsRes.ok) {
+        state.reviews = await reviewsRes.json();
+    }
+
+    await loadApiIntegrations();
+}
+
+async function loadApiIntegrations() {
+    state.products = state.products || [];
+    state.stampRule = state.stampRule || null;
+    state.productFactoryTypes = state.productFactoryTypes || [];
+    state.apiBeverageOptions = null;
+    state.apiInfo = null;
+
+    try {
+        const data = await tryJson(await apiFetch('products'));
+        if (data && Array.isArray(data)) state.products = data;
+    } catch (e) { /* offline */ }
+
+    try {
+        const data = await tryJson(await apiFetch('stamps/rule/current'));
+        if (data) state.stampRule = data;
+    } catch (e) { /* offline */ }
+
+    try {
+        const data = await tryJson(await apiFetch('products/types'));
+        if (data && data.types) state.productFactoryTypes = data.types;
+    } catch (e) { /* offline */ }
+
+    try {
+        const data = await tryJson(await apiFetch('beverages/options'));
+        if (data) state.apiBeverageOptions = data;
+    } catch (e) { /* offline */ }
+
+    try {
+        const data = await tryJson(await apiFetch('info'));
+        if (data) state.apiInfo = data;
+    } catch (e) { /* offline */ }
+}
+
+async function refreshStatsAndStamps() {
+    if (!state.user) return;
+    try {
+        const stampsRes = await apiFetch(`stamps/${state.user.id}`);
+        if (stampsRes.ok) state.stamps = await stampsRes.json();
+        const statsRes = await apiFetch(`stats/${state.user.id}`);
+        if (statsRes.ok) state.userStats = await statsRes.json();
+        const ordersRes = await apiFetch(`orders?userId=${encodeURIComponent(state.user.id)}`);
+        if (ordersRes.ok) state.orders = await ordersRes.json();
+        const ruleRes = await apiFetch('stamps/rule/current');
+        if (ruleRes.ok) state.stampRule = await ruleRes.json();
+    } catch (e) {
+        /* sin API */
+    }
+}
+
+async function reloadUserReviews() {
+    if (!state.user) return;
+    try {
+        const reviewsRes = await apiFetch(`reviews?userId=${encodeURIComponent(state.user.id)}`);
+        if (reviewsRes.ok) state.reviews = await reviewsRes.json();
+        const statsRes = await apiFetch(`stats/${state.user.id}`);
+        if (statsRes.ok) state.userStats = await statsRes.json();
+    } catch (e) {
+        /* sin API */
+    }
 }
 
 function useMockData() {
-    state.cafes = mockData.cafes;
-    state.orders = mockData.orders;
-    state.stamps = mockData.cafes.flatMap(cafe => 
-        Array(cafe.stamps).fill().map((_, i) => ({
+    state.cafes = mockData.cafes.map(c => ({ ...c }));
+    const uid = state.user.id;
+    state.orders = mockData.orders.filter(o => o.userId === uid);
+    state.stamps = mockData.cafes.flatMap(cafe =>
+        Array(Math.min(cafe.stamps, 4)).fill().map((_, i) => ({
+            userId: uid,
             cafeId: cafe.id,
             cafeName: cafe.name,
             date: new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
         }))
     );
+    state.reviews = [];
+    state.userStats = {
+        totalStamps: state.stamps.length,
+        totalOrders: state.orders.length,
+        totalReviews: 0,
+        cafesVisited: new Set(state.stamps.map(s => s.cafeId)).size,
+        totalSpent: state.orders.reduce((s, o) => s + o.total, 0)
+    };
+    state.products = mockData.products.map(p => ({ ...p }));
+    state.stampRule = null;
+    state.productFactoryTypes = ['beverage', 'dessert', 'snack', 'merchandise'];
+    state.apiBeverageOptions = null;
+    state.apiInfo = null;
 }
 
 // ===== Renderizado =====
@@ -152,10 +510,358 @@ function renderAll() {
     updateStats();
     updateProgress();
     updateCustomBeverage();
+    renderDashboard();
+    renderRewardsUi();
+    renderReviewsList();
+    renderCustomizeApiHint();
+}
+
+function getStampCount() {
+    return state.stamps ? state.stamps.length : 0;
+}
+
+function getNextRewardTier(current) {
+    const sorted = [...REWARD_TIERS].sort((a, b) => a.stamps - b.stamps);
+    for (const t of sorted) {
+        if (current < t.stamps) return t;
+    }
+    return null;
+}
+
+function inferStampRuleSelectValue(info) {
+    if (!info || !info.name) return 'basic';
+    const n = String(info.name);
+    if (n.includes('Doble') || n.toLowerCase().includes('doble')) return 'double';
+    if (n.includes('Lealtad') || n.toLowerCase().includes('lealtad')) return 'loyalty';
+    return 'basic';
+}
+
+function renderStampRulePanel() {
+    const nameEl = document.getElementById('stampRuleCurrentName');
+    if (!nameEl) return;
+    const descEl = document.getElementById('stampRuleCurrentDesc');
+    const historyEl = document.getElementById('stampRuleHistoryList');
+    const select = document.getElementById('stampRuleSelect');
+    const data = state.stampRule;
+
+    if (!data || !data.currentRule) {
+        nameEl.textContent = 'No disponible';
+        if (descEl) descEl.textContent = 'Inicia el servidor Node y recarga la sesión para leer GET /api/stamps/rule/current.';
+        if (historyEl) historyEl.innerHTML = '';
+        if (select) select.value = 'basic';
+        return;
+    }
+
+    nameEl.textContent = data.currentRule.name;
+    if (descEl) descEl.textContent = data.currentRule.description || '';
+    if (select) select.value = inferStampRuleSelectValue(data.currentRule);
+
+    const hist = data.history || [];
+    if (historyEl) {
+        if (hist.length === 0) {
+            historyEl.innerHTML = '<li class="stamp-rule-history-empty">Sin cambios de regla registrados en el contexto del servidor.</li>';
+        } else {
+            historyEl.innerHTML = [...hist].reverse().slice(0, 10).map((h) => {
+                const d = h.changedAt ? new Date(h.changedAt).toLocaleString('es-MX') : '';
+                const from = escapeHtml(String(h.from ?? ''));
+                const to = escapeHtml(String(h.to ?? ''));
+                return `<li><span class="h-from">${from}</span> → <span class="h-to">${to}</span> <time>${escapeHtml(d)}</time></li>`;
+            }).join('');
+        }
+    }
+}
+
+function renderApiPatternSummary() {
+    const el = document.getElementById('dashboardPatternSummary');
+    const infoEl = document.getElementById('dashboardApiInfoLine');
+    if (el) {
+        const types = (state.productFactoryTypes || []).join(', ') || '—';
+        el.innerHTML = `<strong>Factory Method</strong> — tipos en <code>ProductFactory</code> (<code>GET /api/products/types</code>): <code>${types}</code>. Cada ítem de la orden envía <code>type</code>, <code>name</code> y <code>price</code> (más campos opcionales) para <code>POST /api/orders</code>.`;
+    }
+    if (infoEl) {
+        if (state.apiInfo && state.apiInfo.stats) {
+            const s = state.apiInfo.stats;
+            infoEl.textContent = `Resumen API (${state.apiInfo.name || 'BrewJourney'}): ${s.products ?? '—'} productos en catálogo · ${s.cafes ?? '—'} cafeterías · ${s.orders ?? '—'} órdenes.`;
+        } else {
+            infoEl.textContent = '';
+        }
+    }
+}
+
+function renderCustomizeApiHint() {
+    const el = document.getElementById('apiBeverageOptionsHint');
+    if (!el) return;
+    const o = state.apiBeverageOptions;
+    if (!o || !o.bases) {
+        el.classList.add('hidden');
+        el.innerHTML = '';
+        return;
+    }
+    el.classList.remove('hidden');
+    const bases = (o.bases || []).join(', ');
+    const milks = o.milkTypes ? Object.keys(o.milkTypes).join(', ') : '';
+    const flavors = o.flavors ? Object.keys(o.flavors).join(', ') : '';
+    el.innerHTML = `<i class="fas fa-link"></i> Sincronizado con <code>GET /api/beverages/options</code>: bases <code>${escapeHtml(bases)}</code>${milks ? ` · leches <code>${escapeHtml(milks)}</code>` : ''}${flavors ? ` · jarabes <code>${escapeHtml(flavors)}</code>` : ''}. El precio final sigue viniendo de <code>POST /api/beverages/customize</code>.`;
+}
+
+async function applyStampRule() {
+    const select = document.getElementById('stampRuleSelect');
+    if (!select) return;
+    const rule = select.value;
+    try {
+        const res = await apiFetch('stamps/rule', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rule })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            showToast(data.error || 'No se pudo cambiar la regla', 'error');
+            return;
+        }
+        state.stampRule = {
+            currentRule: data.currentRule,
+            history: data.history || []
+        };
+        renderStampRulePanel();
+        showToast('Regla de sellos actualizada en el servidor', 'success');
+    } catch (e) {
+        showToast('Sin conexión al servidor', 'error');
+    }
+}
+
+function renderDashboard() {
+    const nameEl = document.getElementById('dashboardUserName');
+    if (nameEl && state.user) nameEl.textContent = state.user.name;
+
+    const s = state.userStats || {};
+    const stamps = s.totalStamps != null ? s.totalStamps : getStampCount();
+    const cafes = s.cafesVisited != null ? s.cafesVisited : new Set((state.stamps || []).map(x => x.cafeId)).size;
+    const orders = s.totalOrders != null ? s.totalOrders : getOrdersForUser().length;
+    const reviews = s.totalReviews != null ? s.totalReviews : (state.reviews || []).length;
+    const spent = s.totalSpent != null ? s.totalSpent : getOrdersForUser().reduce((sum, o) => sum + (o.total || 0), 0);
+
+    const map = {
+        dashTotalStamps: stamps,
+        dashCafesVisited: cafes,
+        dashTotalOrders: orders,
+        dashTotalReviews: reviews,
+        dashTotalSpent: spent
+    };
+    Object.entries(map).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = id === 'dashTotalSpent' ? `$${Number(val).toFixed(2)}` : String(val);
+    });
+    renderStampRulePanel();
+    renderApiPatternSummary();
+}
+
+function renderRewardsUi() {
+    const count = getStampCount();
+    const next = getNextRewardTier(count);
+
+    const hero = document.getElementById('rewardsHeroStamps');
+    if (hero) hero.textContent = String(count);
+
+    const prev = next ? REWARD_TIERS.filter(t => t.stamps < next.stamps).sort((a, b) => b.stamps - a.stamps)[0] : null;
+    const lower = prev ? prev.stamps : 0;
+    const upper = next ? next.stamps : (REWARD_TIERS[REWARD_TIERS.length - 1]?.stamps || 15);
+    const nextLabel = document.getElementById('rewardsNextMeta');
+    const nextDetail = document.getElementById('rewardsNextDetail');
+    const bar = document.getElementById('rewardsProgressFill');
+    const passportLabel = document.getElementById('nextRewardLabel');
+
+    if (!next) {
+        if (nextLabel) nextLabel.textContent = 'Todas las metas alcanzadas';
+        if (nextDetail) nextDetail.textContent = '¡Sigue visitando cafeterías!';
+        if (bar) bar.style.width = '100%';
+        if (passportLabel) passportLabel.textContent = 'todas desbloqueadas';
+    } else {
+        if (nextLabel) nextLabel.textContent = `${next.title} (${next.stamps} sellos)`;
+        if (nextDetail) nextDetail.textContent = `${next.stamps - count} sellos restantes · ${next.desc}`;
+        const span = Math.max(upper - lower, 1);
+        const pct = Math.min(100, ((count - lower) / span) * 100);
+        if (bar) bar.style.width = `${pct}%`;
+        if (passportLabel) passportLabel.textContent = `${next.title} (${next.stamps} sellos)`;
+    }
+
+    const compact = document.getElementById('rewardsCompactInPassport');
+    if (compact) {
+        compact.innerHTML = REWARD_TIERS.map(t => {
+            const ok = count >= t.stamps;
+            const diff = t.stamps - count;
+            return `
+                <div class="reward-card ${ok ? 'available' : ''}">
+                    <div class="reward-icon"><i class="fas ${t.icon}"></i></div>
+                    <div class="reward-info">
+                        <h4>${t.title}</h4>
+                        <p>${t.stamps} sellos</p>
+                    </div>
+                    <span class="reward-status ${ok ? '' : 'locked'}">${ok ? 'Desbloqueada' : `${diff} más`}</span>
+                </div>`;
+        }).join('');
+    }
+
+    const grid = document.getElementById('rewardsTierGrid');
+    if (grid) {
+        grid.innerHTML = REWARD_TIERS.map(t => {
+            const unlocked = count >= t.stamps;
+            const diff = t.stamps - count;
+            return `
+                <article class="reward-tier-card ${unlocked ? 'unlocked' : 'locked'}">
+                    <div class="reward-tier-head">
+                        <div class="reward-tier-icon"><i class="fas ${t.icon}"></i></div>
+                        <div>
+                            <h4>${t.title}</h4>
+                            <p class="reward-tier-meta">${t.desc}</p>
+                        </div>
+                    </div>
+                    <p class="reward-tier-status ${unlocked ? 'done' : ''}">
+                        ${unlocked ? 'Estado: canje disponible (demo)' : `Faltan ${diff} sello(s)`}
+                    </p>
+                </article>`;
+        }).join('');
+    }
+}
+
+function renderReviewsList() {
+    const list = document.getElementById('reviewsList');
+    const pill = document.getElementById('reviewsCountPill');
+    if (pill) pill.textContent = String((state.reviews || []).length);
+
+    if (!list) return;
+    const items = state.reviews || [];
+    if (items.length === 0) {
+        list.innerHTML = `
+            <div class="reviews-empty">
+                <i class="fas fa-comment-slash" style="font-size:2rem;margin-bottom:0.75rem;opacity:0.5;"></i>
+                <p>Aún no hay reseñas para este usuario.</p>
+                <p style="margin-top:0.5rem;font-size:0.9rem;">Publica una desde <strong>Cafeterías</strong>.</p>
+            </div>`;
+        return;
+    }
+    list.innerHTML = items.map(r => {
+        const stars = `${'<i class="fas fa-star"></i>'.repeat(r.rating)}${'<i class="far fa-star"></i>'.repeat(5 - r.rating)}`;
+        const tags = (r.tags || []).map(t => `<span class="review-tag-pill">${escapeHtml(t)}</span>`).join('');
+        return `
+            <article class="review-list-card">
+                <div class="review-list-card-header">
+                    <span class="review-list-cafe">${escapeHtml(r.cafeName || 'Cafetería')}</span>
+                    <span class="review-list-date">${formatDate(r.createdAt || r.updatedAt)}</span>
+                </div>
+                <div class="review-list-stars">${stars}</div>
+                <p class="review-list-text">${escapeHtml(r.text || '')}</p>
+                ${tags ? `<div class="review-list-tags">${tags}</div>` : ''}
+                ${state.user && r.userId === state.user.id ? `
+                <div class="review-list-actions">
+                    <button type="button" class="btn-review-action" data-review-action="edit" data-review-id="${r.id}"><i class="fas fa-pen"></i> Editar</button>
+                    <button type="button" class="btn-review-action btn-review-action-secondary" data-review-action="history" data-review-id="${r.id}"><i class="fas fa-clock-rotate-left"></i> Historial</button>
+                    <button type="button" class="btn-review-action btn-review-action-secondary" data-review-action="undo" data-review-id="${r.id}"><i class="fas fa-rotate-left"></i> Deshacer (servidor)</button>
+                </div>` : ''}
+            </article>`;
+    }).join('');
+}
+
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+function onReviewsListClick(e) {
+    const btn = e.target.closest('[data-review-action]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-review-id');
+    const action = btn.getAttribute('data-review-action');
+    if (!id) return;
+    if (action === 'edit') openEditReviewModalById(id);
+    else if (action === 'history') openReviewHistoryModal(id);
+    else if (action === 'undo') undoServerReview(id);
+}
+
+function openEditReviewModalById(reviewId) {
+    const r = (state.reviews || []).find((x) => x.id === reviewId);
+    if (!r || !state.user || r.userId !== state.user.id) {
+        showToast('No se puede editar esta reseña', 'error');
+        return;
+    }
+    state.currentReview.history = [];
+    state.currentReview.historyIndex = -1;
+    document.getElementById('reviewText').value = '';
+    document.querySelectorAll('#starRating i').forEach((star) => star.classList.remove('active'));
+    document.querySelectorAll('.tags-container .tag').forEach((tag) => tag.classList.remove('selected'));
+
+    document.getElementById('reviewEditId').value = r.id;
+    document.getElementById('reviewCafeId').value = r.cafeId;
+    const title = document.getElementById('reviewModalTitle');
+    if (title) title.innerHTML = '<i class="fas fa-pen"></i> Editar reseña — <code>PUT /api/reviews/:id</code>';
+    const sub = document.getElementById('reviewSubmitBtn');
+    if (sub) sub.innerHTML = '<i class="fas fa-save"></i> Guardar (Memento: snapshot antes de editar)';
+    setRating(r.rating);
+    document.getElementById('reviewText').value = r.text || '';
+    document.querySelectorAll('.tags-container .tag').forEach((tag) => {
+        tag.classList.toggle('selected', (r.tags || []).includes(tag.dataset.tag));
+    });
+    state.currentReview.tags = [...(r.tags || [])];
+    state.currentReview.history = [];
+    state.currentReview.historyIndex = -1;
+    document.getElementById('reviewModal').classList.remove('hidden');
+    updateUndoRedoButtons();
+}
+
+function closeReviewHistoryModal() {
+    document.getElementById('reviewHistoryModal')?.classList.add('hidden');
+}
+
+async function openReviewHistoryModal(reviewId) {
+    const modal = document.getElementById('reviewHistoryModal');
+    const body = document.getElementById('reviewHistoryBody');
+    if (!modal || !body) return;
+    modal.classList.remove('hidden');
+    body.innerHTML = '<p class="muted">Cargando historial…</p>';
+    try {
+        const res = await apiFetch(`reviews/${encodeURIComponent(reviewId)}/history`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error();
+        const items = data.history || [];
+        if (items.length === 0) {
+            body.innerHTML = '<p>Sin entradas en el historial.</p>';
+            return;
+        }
+        body.innerHTML = `<ol class="review-history-ol">${items.map((h) => `
+            <li>
+                <time>${escapeHtml(formatDate(h.savedAt))}</time>
+                — ${escapeHtml(h.reason || '')}
+                — rating <strong>${escapeHtml(String(h.rating ?? ''))}</strong>
+                <div class="review-history-preview">${escapeHtml((h.textPreview || '').replace(/\.\.\.$/, ''))}</div>
+            </li>`).join('')}</ol>`;
+    } catch (e) {
+        body.innerHTML = '<p>No se pudo cargar el historial (¿servidor activo?).</p>';
+    }
+}
+
+async function undoServerReview(reviewId) {
+    try {
+        const res = await apiFetch(`reviews/${encodeURIComponent(reviewId)}/undo`, { method: 'POST' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+            showToast(data.message || 'No hay cambios para deshacer', 'error');
+            return;
+        }
+        showToast(data.message || 'Estado restaurado desde Memento (servidor)', 'success');
+        await reloadUserReviews();
+        renderReviewsList();
+        renderDashboard();
+        updateStats();
+    } catch (e) {
+        showToast('Sin conexión al servidor', 'error');
+    }
 }
 
 function renderPassportPreview() {
     const container = document.getElementById('passportPreview');
+    if (!container) return;
     const stamps = state.stamps.slice(0, 8);
     
     container.innerHTML = stamps.map(stamp => `
@@ -171,7 +877,8 @@ function renderPassportPreview() {
 
 function renderStampsGrid() {
     const container = document.getElementById('stampsGrid');
-    
+    if (!container) return;
+
     container.innerHTML = state.stamps.map(stamp => `
         <div class="stamp-item">
             <div class="stamp-icon">
@@ -223,10 +930,23 @@ function renderCafes() {
         `).join('');
 }
 
+function getOrdersForUser() {
+    if (!state.user) return [];
+    return (state.orders || []).filter(o => !o.userId || o.userId === state.user.id);
+}
+
 function renderOrders() {
     const container = document.getElementById('ordersList');
-    
-    if (state.orders.length === 0) {
+    if (!container) return;
+
+    const userOrders = getOrdersForUser();
+    const totalSum = userOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+    const badgeCount = document.getElementById('ordersCountBadge');
+    const badgeSum = document.getElementById('ordersSumBadge');
+    if (badgeCount) badgeCount.textContent = String(userOrders.length);
+    if (badgeSum) badgeSum.textContent = `$${totalSum.toFixed(2)}`;
+
+    if (userOrders.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-receipt"></i>
@@ -235,22 +955,27 @@ function renderOrders() {
         `;
         return;
     }
-    
-    container.innerHTML = state.orders.map(order => `
+
+    const typeLabel = (t) => (t === 'takeout' ? 'Para llevar' : t === 'dine-in' ? 'En local' : (t || 'orden'));
+
+    container.innerHTML = userOrders.map(order => `
         <div class="order-card">
             <div class="order-header">
-                <span class="order-id">#${order.id.slice(-6).toUpperCase()}</span>
-                <span class="order-status ${order.status}">${order.status === 'completed' ? 'Completada' : 'Pendiente'}</span>
+                <span class="order-id">#${String(order.id).slice(-8).toUpperCase()}</span>
+                <span>
+                    <span class="order-status ${order.status}">${order.status === 'completed' ? 'Completada' : 'Pendiente'}</span>
+                    <span class="order-type-chip">${typeLabel(order.orderType)}</span>
+                </span>
             </div>
             <div class="order-cafe">
                 <i class="fas fa-store"></i>
                 ${order.cafe?.name || 'Cafetería'}
             </div>
             <div class="order-products">
-                ${order.products.map(p => `
+                ${(order.products || []).map(p => `
                     <div class="order-product">
                         <span>${p.name}</span>
-                        <span>$${p.price.toFixed(2)}</span>
+                        <span>$${Number(p.price).toFixed(2)}</span>
                     </div>
                 `).join('')}
             </div>
@@ -259,22 +984,54 @@ function renderOrders() {
                     <i class="fas fa-calendar"></i>
                     ${formatDate(order.date || order.createdAt)}
                 </span>
-                <span class="order-total-amount">$${order.total.toFixed(2)}</span>
+                <span class="order-total-amount">$${Number(order.total).toFixed(2)}</span>
             </div>
         </div>
     `).join('');
 }
 
+function iconClassForProduct(product) {
+    if (product.icon) {
+        const ic = String(product.icon);
+        return ic.startsWith('fa-') ? ic : `fa-${ic}`;
+    }
+    const m = {
+        beverage: 'fa-mug-hot',
+        snack: 'fa-cookie-bite',
+        dessert: 'fa-cake-candles',
+        merchandise: 'fa-mug-saucer'
+    };
+    return m[product.type] || 'fa-tag';
+}
+
 function renderProductSelector() {
     const container = document.getElementById('productsSelector');
-    
-    container.innerHTML = mockData.products.map(product => `
-        <div class="product-option" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">
-            <i class="fas ${product.icon}"></i>
-            <div class="name">${product.name}</div>
-            <div class="price">$${product.price.toFixed(2)}</div>
-        </div>
-    `).join('');
+    if (!container) return;
+
+    const list = (state.products && state.products.length > 0) ? state.products : mockData.products;
+
+    container.innerHTML = list.map((product) => {
+        const ic = iconClassForProduct(product);
+        const size = product.size || 'medium';
+        const typeCategory = product.typeCategory || '';
+        const flavor = product.flavor || '';
+        const category = product.category || '';
+        return `
+        <div class="product-option"
+             data-id="${product.id}"
+             data-type="${product.type}"
+             data-name="${String(product.name).replace(/"/g, '&quot;')}"
+             data-price="${product.price}"
+             data-size="${size}"
+             data-type-category="${String(typeCategory).replace(/"/g, '&quot;')}"
+             data-flavor="${String(flavor).replace(/"/g, '&quot;')}"
+             data-category="${String(category).replace(/"/g, '&quot;')}">
+            <i class="fas ${ic}"></i>
+            <div class="name">${escapeHtml(product.name)}</div>
+            <div class="price">$${Number(product.price).toFixed(2)}</div>
+            <span class="product-type-tag">${escapeHtml(product.type)}</span>
+        </div>`;
+    }).join('');
 }
 
 function renderStars(rating) {
@@ -290,27 +1047,48 @@ function renderStars(rating) {
 }
 
 function updateStats() {
-    document.getElementById('totalStamps').textContent = state.stamps.length;
-    document.getElementById('totalCafes').textContent = new Set(state.stamps.map(s => s.cafeId)).size;
-    document.getElementById('totalReviews').textContent = Math.floor(state.stamps.length * 0.7);
+    const ts = document.getElementById('totalStamps');
+    const tc = document.getElementById('totalCafes');
+    const tr = document.getElementById('totalReviews');
+    if (!ts || !tc || !tr) return;
+    ts.textContent = getStampCount();
+    tc.textContent = new Set(state.stamps.map(s => s.cafeId)).size;
+    const rev = state.userStats?.totalReviews != null
+        ? state.userStats.totalReviews
+        : (state.reviews || []).length;
+    tr.textContent = rev;
 }
 
 function updateProgress() {
-    const current = state.stamps.length;
-    const target = 15;
-    const percentage = Math.min((current / target) * 100, 100);
-    
-    document.getElementById('progressFill').style.width = `${percentage}%`;
-    document.getElementById('currentStamps').textContent = current;
+    const fill = document.getElementById('progressFill');
+    const curEl = document.getElementById('currentStamps');
+    if (!fill || !curEl) return;
+    const current = getStampCount();
+    curEl.textContent = current;
+    const next = getNextRewardTier(current);
+    if (!next) {
+        fill.style.width = '100%';
+        return;
+    }
+    const prevTier = [...REWARD_TIERS].filter(t => t.stamps < next.stamps).sort((a, b) => b.stamps - a.stamps)[0];
+    const lower = prevTier ? prevTier.stamps : 0;
+    const span = Math.max(next.stamps - lower, 1);
+    const pct = Math.min(100, ((current - lower) / span) * 100);
+    fill.style.width = `${pct}%`;
 }
 
 // ===== Event Listeners =====
 function setupEventListeners() {
-    // Navegación
+    if (appListenersBound) return;
+    appListenersBound = true;
+
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const section = e.target.getAttribute('href').substring(1);
+            const a = e.target.closest('a');
+            if (!a || !a.getAttribute('href')) return;
+            const href = a.getAttribute('href');
+            const section = href.startsWith('#') ? href.slice(1) : href;
             showSection(section);
         });
     });
@@ -358,61 +1136,80 @@ function setupEventListeners() {
     
     // Beverage Customization (Decorator Pattern)
     setupCustomizeListeners();
+
+    document.getElementById('stampRuleApplyBtn')?.addEventListener('click', applyStampRule);
+
+    document.getElementById('reviewsList')?.addEventListener('click', onReviewsListClick);
 }
 
 // ===== Navegación =====
 function showSection(sectionId) {
-    // Ocultar todas las secciones
     document.querySelectorAll('.section, .hero').forEach(section => {
         section.classList.add('hidden');
     });
-    
-    // Mostrar la sección seleccionada
+
     if (sectionId === 'home') {
-        document.querySelector('.hero').classList.remove('hidden');
+        const hero = document.querySelector('.hero');
+        if (hero) hero.classList.remove('hidden');
     } else {
-        document.getElementById(sectionId).classList.remove('hidden');
+        const el = document.getElementById(sectionId);
+        if (el) el.classList.remove('hidden');
     }
-    
-    // Actualizar nav links
+
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.classList.toggle('active', link.getAttribute('href') === `#${sectionId}`);
     });
+
+    if (sectionId === 'customize') {
+        renderCustomizeApiHint();
+    }
 }
 
 // ===== Acciones =====
 async function registerVisit(cafeId) {
+    if (!state.user) return;
     const cafe = state.cafes.find(c => c.id === cafeId);
-    
+    if (!cafe) return;
+
     try {
-        const response = await fetch(`${API_URL}/stamps`, {
+        const orderInput = document.getElementById('visitOrderTotal');
+        const rawTotal = orderInput ? parseFloat(orderInput.value) : 0;
+        const orderTotal = Number.isFinite(rawTotal) ? rawTotal : 0;
+
+        const response = await apiFetch('stamps', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: state.user.id,
                 cafeId: cafeId,
-                date: new Date().toISOString()
+                orderTotal
             })
         });
-        
+
         if (response.ok) {
             const result = await response.json();
-            showToast(result.message, 'success');
+            if (result.success === false) {
+                showToast(result.message || 'No se pudo registrar la visita', 'error');
+            } else {
+                showToast(result.message || '¡Visita registrada!', 'success');
+            }
+        } else {
+            showToast('No se pudo contactar al servidor', 'error');
         }
     } catch (error) {
-        // Modo offline - agregar localmente
         const newStamp = {
             cafeId: cafeId,
             cafeName: cafe.name,
             date: new Date().toISOString().split('T')[0]
         };
-        
+
         state.stamps.push(newStamp);
-        cafe.stamps++;
-        
-        showToast(`¡Sello agregado en ${cafe.name}!`, 'success');
+        cafe.stamps = (cafe.stamps || 0) + 1;
+
+        showToast(`¡Sello agregado en ${cafe.name}! (modo sin servidor)`, 'success');
     }
-    
+
+    await refreshStatsAndStamps();
     renderAll();
 }
 
@@ -440,7 +1237,9 @@ function updateOrderSummary() {
 
 async function handleNewOrder(e) {
     e.preventDefault();
-    
+
+    if (!state.user) return;
+
     const cafeId = document.getElementById('orderCafe').value;
     const selected = document.querySelectorAll('.product-option.selected');
     
@@ -455,79 +1254,76 @@ async function handleNewOrder(e) {
     }
     
     const cafe = state.cafes.find(c => c.id === cafeId);
-    const products = Array.from(selected).map(option => ({
-        name: option.dataset.name,
-        price: parseFloat(option.dataset.price)
-    }));
-    
+    const products = Array.from(selected).map((option) => {
+        const item = {
+            type: option.dataset.type,
+            name: option.dataset.name,
+            price: parseFloat(option.dataset.price)
+        };
+        if (option.dataset.size) item.size = option.dataset.size;
+        if (option.dataset.typeCategory) item.typeCategory = option.dataset.typeCategory;
+        if (option.dataset.flavor) item.flavor = option.dataset.flavor;
+        if (option.dataset.category) item.category = option.dataset.category;
+        return item;
+    });
+
     const total = products.reduce((sum, p) => sum + p.price, 0);
-    
+    const orderTypeEl = document.getElementById('orderTypeSelect');
+    const orderType = orderTypeEl ? orderTypeEl.value : 'dine-in';
+
     try {
-        const response = await fetch(`${API_URL}/orders`, {
+        const response = await apiFetch('orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: state.user.id,
                 cafeId: cafeId,
                 items: products,
-                type: 'dine-in'
+                type: orderType
             })
         });
         
         if (response.ok) {
             const result = await response.json();
-            
-            // Agregar a estado local
-            state.orders.unshift({
-                id: result.order.id,
-                cafe: { id: cafeId, name: cafe.name },
-                products: products,
-                total: total,
-                status: 'completed',
-                createdAt: new Date().toISOString()
-            });
-            
             showToast(result.message || '¡Orden creada exitosamente!', 'success');
+            await refreshStatsAndStamps();
         }
     } catch (error) {
-        // Modo offline - agregar localmente
         state.orders.unshift({
             id: `order_${Date.now()}`,
+            userId: state.user.id,
             cafe: { id: cafeId, name: cafe.name },
             products: products,
             total: total,
             status: 'completed',
+            orderType: 'dine-in',
             createdAt: new Date().toISOString()
         });
-        
+
         showToast('¡Orden creada (modo offline)!', 'success');
     }
-    
-    // Recargar sellos
-    try {
-        const stampsRes = await fetch(`${API_URL}/stamps/${state.user.id}`);
-        state.stamps = await stampsRes.json();
-    } catch (e) {
-        // Offline
-    }
-    
-    // Limpiar formulario
+
     selected.forEach(option => option.classList.remove('selected'));
     document.getElementById('orderCafe').value = '';
     updateOrderSummary();
-    
+
     renderAll();
 }
 
 // ===== Modal de Reseñas =====
 function openReviewModal(cafeId) {
+    if (!state.user) {
+        showToast('Inicia sesión para escribir una reseña', 'error');
+        return;
+    }
     document.getElementById('reviewCafeId').value = cafeId;
-    document.getElementById('reviewModal').classList.remove('hidden');
     resetReviewState();
+    document.getElementById('reviewModal').classList.remove('hidden');
 }
 
 function closeModal() {
     document.getElementById('reviewModal').classList.add('hidden');
+    resetReviewState();
 }
 
 function setRating(rating) {
@@ -609,6 +1405,13 @@ function updateUndoRedoButtons() {
 }
 
 function resetReviewState() {
+    const edit = document.getElementById('reviewEditId');
+    if (edit) edit.value = '';
+    const title = document.getElementById('reviewModalTitle');
+    if (title) title.innerHTML = '<i class="fas fa-star"></i> Nueva reseña — <code>POST /api/reviews</code>';
+    const sub = document.getElementById('reviewSubmitBtn');
+    if (sub) sub.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar reseña';
+
     state.currentReview = {
         rating: 0,
         text: '',
@@ -616,54 +1419,97 @@ function resetReviewState() {
         history: [],
         historyIndex: -1
     };
-    
+
     document.getElementById('reviewText').value = '';
     document.querySelectorAll('#starRating i').forEach(star => star.classList.remove('active'));
     document.querySelectorAll('.tags-container .tag').forEach(tag => tag.classList.remove('selected'));
-    
+
     updateUndoRedoButtons();
 }
 
 async function handleReviewSubmit(e) {
     e.preventDefault();
-    
+
+    if (!state.user) return;
+
+    const editId = document.getElementById('reviewEditId')?.value?.trim();
     const cafeId = document.getElementById('reviewCafeId').value;
     const cafe = state.cafes.find(c => c.id === cafeId);
-    
+
+    if (!cafe) {
+        showToast('Cafetería no válida', 'error');
+        return;
+    }
+
     if (state.currentReview.rating === 0) {
         showToast('Selecciona una calificación', 'error');
         return;
     }
-    
-    const review = {
+
+    const text = document.getElementById('reviewText').value;
+    const rating = state.currentReview.rating;
+    const tags = state.currentReview.tags;
+
+    const bodyCreate = {
         cafeId: cafeId,
         userId: state.user.id,
-        rating: state.currentReview.rating,
-        text: document.getElementById('reviewText').value,
-        tags: state.currentReview.tags,
-        date: new Date().toISOString()
+        rating,
+        text,
+        tags
     };
-    
+
+    const bodyPut = { text, rating, tags };
+
+    let ok = false;
     try {
-        await fetch(`${API_URL}/reviews`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(review)
-        });
+        let res;
+        if (editId) {
+            res = await apiFetch(`reviews/${encodeURIComponent(editId)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyPut)
+            });
+        } else {
+            res = await apiFetch('reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyCreate)
+            });
+        }
+        ok = res.ok;
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            showToast(err.error || 'No se pudo guardar la reseña', 'error');
+        }
     } catch (error) {
-        // Modo offline
+        showToast('Sin conexión al servidor', 'error');
     }
-    
-    showToast(`¡Reseña publicada para ${cafe.name}!`, 'success');
-    closeModal();
-    resetReviewState();
+
+    if (ok) {
+        showToast(editId ? 'Reseña actualizada (Memento en servidor)' : `¡Reseña publicada para ${cafe.name}!`, 'success');
+        closeModal();
+        await reloadUserReviews();
+        renderReviewsList();
+        renderDashboard();
+        updateStats();
+    }
 }
 
 // ===== Utilidades =====
 function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('es-MX', { 
-        day: 'numeric', 
+    if (!dateStr) return '—';
+    const s = String(dateStr).trim();
+    let date;
+    // Solo fecha YYYY-MM-DD: interpretar como calendario local (evita desfase de un día vs UTC).
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const [y, mo, d] = s.split('-').map(Number);
+        date = new Date(y, mo - 1, d);
+    } else {
+        date = new Date(dateStr);
+    }
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleDateString('es-MX', {
+        day: 'numeric',
         month: 'short',
         year: 'numeric'
     });
@@ -742,7 +1588,7 @@ async function updateCustomBeverage() {
     const { baseName, basePrice, size, extras } = state.customBeverage;
     
     try {
-        const response = await fetch(`${API_URL}/beverages/customize`, {
+        const response = await apiFetch('beverages/customize', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ baseName, basePrice, size, extras })
@@ -799,31 +1645,31 @@ function renderCustomizeResultLocal() {
         
         switch (extra.type) {
             case 'milk':
-                extraPrice = 0.75;
+                extraPrice = LOCAL_EXTRA_PRICING.milk(extra.milkType);
                 extraName = `Leche de ${capitalize(extra.milkType)}`;
                 decoratorStr = `MilkDecorator("${extra.milkType}")`;
                 descriptions.push(`leche de ${extra.milkType}`);
                 break;
             case 'extraShot':
-                extraPrice = 0.80 * extra.shots;
+                extraPrice = LOCAL_EXTRA_PRICING.shotPerUnit * extra.shots;
                 extraName = extra.shots > 1 ? `${extra.shots} Shots Extra` : 'Shot Extra';
                 decoratorStr = `ExtraShotDecorator(${extra.shots})`;
                 descriptions.push(`${extra.shots} shot${extra.shots > 1 ? 's' : ''} extra`);
                 break;
             case 'whippedCream':
-                extraPrice = 0.60;
+                extraPrice = LOCAL_EXTRA_PRICING.whippedCream;
                 extraName = 'Crema Batida';
                 decoratorStr = 'WhippedCreamDecorator()';
                 descriptions.push('crema batida');
                 break;
             case 'flavorSyrup':
-                extraPrice = 0.50;
+                extraPrice = LOCAL_EXTRA_PRICING.flavor(extra.flavor);
                 extraName = `Jarabe ${capitalize(extra.flavor)}`;
                 decoratorStr = `FlavorSyrupDecorator("${extra.flavor}")`;
                 descriptions.push(`jarabe de ${extra.flavor}`);
                 break;
             case 'sizeUpgrade':
-                extraPrice = 1.00;
+                extraPrice = LOCAL_EXTRA_PRICING.sizeUpgrade;
                 extraName = 'Tamaño Extra';
                 decoratorStr = 'SizeUpgradeDecorator()';
                 descriptions.push('tamaño extra');
@@ -882,6 +1728,10 @@ function capitalize(str) {
 }
 
 async function addCustomBeverageToOrder() {
+    if (!state.user) {
+        showToast('Inicia sesión para agregar a la orden', 'error');
+        return;
+    }
     const { baseName, basePrice, size, extras } = state.customBeverage;
     
     // Get the final product info
@@ -891,11 +1741,11 @@ async function addCustomBeverageToOrder() {
     // Calculate total with extras
     extras.forEach(extra => {
         switch (extra.type) {
-            case 'milk': finalPrice += 0.75; break;
-            case 'extraShot': finalPrice += 0.80 * extra.shots; break;
-            case 'whippedCream': finalPrice += 0.60; break;
-            case 'flavorSyrup': finalPrice += 0.50; break;
-            case 'sizeUpgrade': finalPrice += 1.00; break;
+            case 'milk': finalPrice += LOCAL_EXTRA_PRICING.milk(extra.milkType); break;
+            case 'extraShot': finalPrice += LOCAL_EXTRA_PRICING.shotPerUnit * extra.shots; break;
+            case 'whippedCream': finalPrice += LOCAL_EXTRA_PRICING.whippedCream; break;
+            case 'flavorSyrup': finalPrice += LOCAL_EXTRA_PRICING.flavor(extra.flavor); break;
+            case 'sizeUpgrade': finalPrice += LOCAL_EXTRA_PRICING.sizeUpgrade; break;
         }
     });
     
@@ -911,41 +1761,40 @@ async function addCustomBeverageToOrder() {
     const cafe = state.cafes.find(c => c.id === cafeId) || { name: 'BrewJourney Café' };
     
     try {
-        const response = await fetch(`${API_URL}/orders`, {
+        const response = await apiFetch('orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 userId: state.user.id,
                 cafeId: cafeId,
-                items: [orderItem],
+                items: [{
+                    type: 'beverage',
+                    name: orderItem.name,
+                    price: finalPrice,
+                    size: state.customBeverage.size || 'medium'
+                }],
                 type: 'dine-in'
             })
         });
         
         if (response.ok) {
-            const result = await response.json();
-            state.orders.unshift({
-                id: result.order.id,
-                cafe: { id: cafeId, name: cafe.name },
-                products: [orderItem],
-                total: finalPrice,
-                status: 'completed',
-                createdAt: new Date().toISOString()
-            });
-            
-            showToast(`¡Bebida personalizada agregada! ${extras.length} decoradores aplicados`, 'success');
+            showToast(`¡Bebida personalizada agregada! ${extras.length} decorador(es)`, 'success');
+            await refreshStatsAndStamps();
+        } else {
+            showToast('No se pudo registrar la orden', 'error');
         }
     } catch (error) {
-        // Offline mode
         state.orders.unshift({
             id: `custom_${Date.now()}`,
+            userId: state.user.id,
             cafe: { id: cafeId, name: cafe.name },
             products: [orderItem],
             total: finalPrice,
             status: 'completed',
+            orderType: 'dine-in',
             createdAt: new Date().toISOString()
         });
-        
+
         showToast('¡Bebida personalizada agregada (modo offline)!', 'success');
     }
     
@@ -963,3 +1812,4 @@ window.registerVisit = registerVisit;
 window.openReviewModal = openReviewModal;
 window.closeModal = closeModal;
 window.addCustomBeverageToOrder = addCustomBeverageToOrder;
+window.closeReviewHistoryModal = closeReviewHistoryModal;

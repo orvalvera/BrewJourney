@@ -71,8 +71,8 @@
       "name": "Café Britt",
       "location": "Paseo Montejo #456",
       "image": "https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=400",
-      "rating": 4.4,
-      "totalReviews": 67,
+      "rating": 5,
+      "totalReviews": 68,
       "description": "Café gourmet de Costa Rica con granos de alta calidad."
     }
   ],
@@ -282,6 +282,54 @@
       "type": "regular",
       "orderTotal": 9,
       "date": "2026-02-24"
+    },
+    {
+      "id": "s1778610924295",
+      "userId": "u3",
+      "cafeId": "c2",
+      "type": "regular",
+      "orderTotal": 0,
+      "date": "2026-05-12"
+    },
+    {
+      "id": "s1778611723317",
+      "userId": "u3",
+      "cafeId": "c1",
+      "type": "regular",
+      "orderTotal": 4,
+      "date": "2026-05-12"
+    },
+    {
+      "id": "s1778611740135",
+      "userId": "u3",
+      "cafeId": "c1",
+      "type": "regular",
+      "orderTotal": 4.5,
+      "date": "2026-05-12"
+    },
+    {
+      "id": "s1778611782063",
+      "userId": "u3",
+      "cafeId": "c1",
+      "type": "regular",
+      "orderTotal": 5.5,
+      "date": "2026-05-12"
+    },
+    {
+      "id": "s1778614206530",
+      "userId": "u3",
+      "cafeId": "c4",
+      "type": "regular",
+      "orderTotal": 0,
+      "date": "2026-05-12"
+    },
+    {
+      "id": "s1778614286582",
+      "userId": "u3",
+      "cafeId": "c1",
+      "type": "regular",
+      "orderTotal": 4,
+      "date": "2026-05-12"
     }
   ],
   "orders": [
@@ -366,6 +414,70 @@
       "orderType": "dine-in",
       "status": "completed",
       "createdAt": "2026-02-24T23:08:12.325Z"
+    },
+    {
+      "id": "ord_1778611723313",
+      "userId": "u3",
+      "cafeId": "c1",
+      "products": [
+        {
+          "name": "Latte",
+          "price": 4,
+          "description": "Latte (medium) - $4"
+        }
+      ],
+      "total": 4,
+      "orderType": "takeout",
+      "status": "completed",
+      "createdAt": "2026-05-12T18:48:43.313Z"
+    },
+    {
+      "id": "ord_1778611740132",
+      "userId": "u3",
+      "cafeId": "c1",
+      "products": [
+        {
+          "name": "Latte Personalizado",
+          "price": 4.5,
+          "description": "Latte Personalizado (medium) - $4.5"
+        }
+      ],
+      "total": 4.5,
+      "orderType": "dine-in",
+      "status": "completed",
+      "createdAt": "2026-05-12T18:49:00.132Z"
+    },
+    {
+      "id": "ord_1778611782058",
+      "userId": "u3",
+      "cafeId": "c1",
+      "products": [
+        {
+          "name": "Latte Personalizado",
+          "price": 5.5,
+          "description": "Latte Personalizado (medium) - $5.5"
+        }
+      ],
+      "total": 5.5,
+      "orderType": "dine-in",
+      "status": "completed",
+      "createdAt": "2026-05-12T18:49:42.058Z"
+    },
+    {
+      "id": "ord_1778614286579",
+      "userId": "u3",
+      "cafeId": "c1",
+      "products": [
+        {
+          "name": "Espresso Personalizado",
+          "price": 4,
+          "description": "Espresso Personalizado (medium) - $4"
+        }
+      ],
+      "total": 4,
+      "orderType": "dine-in",
+      "status": "completed",
+      "createdAt": "2026-05-12T19:31:26.579Z"
     }
   ],
   "reviews": [
@@ -424,6 +536,19 @@
       "images": [],
       "createdAt": "2026-02-24T23:08:53.950Z",
       "updatedAt": "2026-02-24T23:09:00.534Z"
+    },
+    {
+      "id": "rev_1778610960950",
+      "userId": "u3",
+      "cafeId": "c5",
+      "text": "10",
+      "rating": 5,
+      "tags": [
+        "comida"
+      ],
+      "images": [],
+      "createdAt": "2026-05-12T18:36:00.950Z",
+      "updatedAt": "2026-05-12T18:36:00.950Z"
     }
   ],
   "reviewHistory": [
@@ -482,6 +607,24 @@
         "updatedAt": "2026-02-24T23:08:53.950Z"
       },
       "savedAt": "2026-02-24T23:09:00.534Z"
+    },
+    {
+      "reviewId": "rev_1778610960950",
+      "state": {
+        "id": "rev_1778610960950",
+        "userId": "u3",
+        "cafeId": "c5",
+        "text": "10",
+        "rating": 5,
+        "tags": [
+          "comida"
+        ],
+        "images": [],
+        "createdAt": "2026-05-12T18:36:00.950Z",
+        "updatedAt": "2026-05-12T18:36:00.950Z"
+      },
+      "reason": "Reseña creada",
+      "savedAt": "2026-05-12T18:36:00.957Z"
     }
   ],
   "settings": {
@@ -490,6 +633,10 @@
       {
         "rule": "double",
         "changedAt": "2026-02-24T23:09:40.757Z"
+      },
+      {
+        "rule": "double",
+        "changedAt": "2026-05-12T18:51:49.271Z"
       }
     ]
   }

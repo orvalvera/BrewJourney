@@ -181,7 +181,7 @@ body {
     justify-content: center;
 }
 
-/* ===== Passport Card ===== */
+/* ===== Pasaporte ===== */
 .passport-card {
     width: 350px;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
@@ -297,7 +297,7 @@ body {
     cursor: not-allowed;
 }
 
-/* ===== Sections ===== */
+/* ===== Secciones ===== */
 .section {
     min-height: 100vh;
     padding: 100px 5% 50px;
@@ -316,7 +316,7 @@ body {
     display: none !important;
 }
 
-/* ===== Passport Section ===== */
+/* ===== Pasaporte  ===== */
 .passport-container {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -400,7 +400,7 @@ body {
     transition: width 0.5s ease;
 }
 
-/* ===== Rewards Panel ===== */
+/* ===== Recompensas ===== */
 .rewards-panel {
     background: var(--card-bg);
     border-radius: var(--radius);
@@ -472,7 +472,7 @@ body {
     color: white;
 }
 
-/* ===== Cafes Section ===== */
+/* ===== Cafeterías ===== */
 .cafes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -583,7 +583,7 @@ body {
     color: white;
 }
 
-/* ===== Orders Section ===== */
+/* ===== Ordenes ===== */
 .orders-container {
     display: grid;
     grid-template-columns: 1.5fr 1fr;
@@ -671,7 +671,7 @@ body {
     color: var(--primary);
 }
 
-/* ===== New Order Panel ===== */
+/* ===== Nueva orden ===== */
 .new-order-panel {
     background: var(--card-bg);
     border-radius: var(--radius);
@@ -843,7 +843,7 @@ body {
     color: var(--error);
 }
 
-/* ===== Star Rating ===== */
+/* ===== Estrellitas ===== */
 .star-rating {
     display: flex;
     gap: 0.5rem;
@@ -930,7 +930,7 @@ body {
     background: var(--error);
 }
 
-/* ===== Responsive ===== */
+/* ===== Responsiva ===== */
 @media (max-width: 1024px) {
     .hero {
         flex-direction: column;
@@ -977,7 +977,7 @@ body {
     }
 }
 
-/* ===== Customize Section (Decorator Pattern) ===== */
+/* ===== (Decorator Pattern) ===== */
 .customize-section .section-subtitle {
     text-align: center;
     color: var(--text-light);
@@ -1054,7 +1054,7 @@ body {
     font-size: 0.9rem;
 }
 
-/* Size Selector */
+/* Tamaños */
 .size-selector {
     margin-top: 1.5rem;
     padding-top: 1rem;
@@ -1174,7 +1174,7 @@ body {
     opacity: 1;
 }
 
-/* Result Panel */
+
 .result-card {
     background: linear-gradient(135deg, var(--accent), var(--background));
     border-radius: var(--radius);
@@ -1233,7 +1233,7 @@ body {
     border-top: 2px solid var(--primary);
 }
 
-/* Decorator Chain Visualization */
+
 .decorator-chain {
     background: #1e1e1e;
     border-radius: var(--radius-sm);
@@ -1304,4 +1304,763 @@ body {
     .extras-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ===== App shell & login (academic UI) ===== */
+.app-shell {
+    min-height: 100vh;
+    padding-top: 72px;
+}
+
+.login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(160deg, #fdf8f3 0%, #e8dcc8 45%, #d4c4b0 100%);
+    position: relative;
+    z-index: 2000;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 2.25rem 2rem;
+    box-shadow: var(--shadow-hover);
+    border: 1px solid rgba(111, 78, 55, 0.12);
+}
+
+.login-brand {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.login-brand i {
+    font-size: 2.5rem;
+    color: var(--primary);
+}
+
+.login-brand h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 0.35rem;
+}
+
+.login-subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.login-hint {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+.login-hint code,
+.login-footnote code,
+.dashboard-academic code,
+.academic-subtitle code {
+    font-size: 0.85em;
+    background: var(--background);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    color: var(--primary-dark);
+}
+
+.login-form .form-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--background);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.login-form .form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.btn-login {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.login-footnote {
+    margin-top: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    text-align: center;
+    line-height: 1.5;
+}
+
+.nav-user-area {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-logout {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--background);
+    background: var(--card-bg);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-logout:hover {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+/* Dashboard */
+.dashboard-section {
+    padding: 100px 5% 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.dashboard-intro h2 {
+    font-size: 1.75rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-welcome {
+    font-size: 1.05rem;
+    margin-bottom: 0.35rem;
+}
+
+.dashboard-academic {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 1.75rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.dashboard-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(111, 78, 55, 0.08);
+}
+
+.dashboard-card-wide {
+    grid-column: span 2;
+}
+
+.dashboard-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.dashboard-card-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dashboard-card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.dashboard-shortcuts {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--secondary);
+}
+
+.shortcuts-label {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+}
+
+.shortcuts-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.btn-shortcut {
+    padding: 0.65rem 1.1rem;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition);
+}
+
+.btn-shortcut:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-link-dash {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 0.65rem;
+    border: none;
+    background: transparent;
+    color: var(--primary);
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.btn-link-dash:hover {
+    background: var(--accent);
+}
+
+.rewards-panel-compact {
+    align-self: stretch;
+}
+
+/* Rewards page */
+.rewards-page-header h2 {
+    color: var(--primary);
+}
+
+.rewards-hero-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: center;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-hover);
+}
+
+.rewards-hero-number {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.rewards-hero-caption {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.rewards-next-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.85;
+    margin-bottom: 0.35rem;
+}
+
+.rewards-next-value {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.rewards-next-detail {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.progress-bar-wide {
+    height: 10px;
+}
+
+.rewards-tier-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.reward-tier-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    border: 2px solid transparent;
+    transition: var(--transition);
+}
+
+.reward-tier-card.unlocked {
+    border-color: var(--success);
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, var(--card-bg) 100%);
+}
+
+.reward-tier-card.locked {
+    opacity: 0.92;
+}
+
+.reward-tier-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.reward-tier-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
+.reward-tier-meta {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.reward-tier-status {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.reward-tier-status.done {
+    color: var(--success);
+}
+
+/* Reviews list */
+.reviews-section .reviews-page-header h2 {
+    color: var(--primary);
+}
+
+.reviews-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.reviews-count-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--card-bg);
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--primary);
+    box-shadow: var(--shadow);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.review-list-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--secondary);
+}
+
+.review-list-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.review-list-cafe {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.review-list-date {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+
+.review-list-stars {
+    color: #e6b800;
+    margin-bottom: 0.5rem;
+    letter-spacing: 2px;
+}
+
+.review-list-text {
+    font-size: 0.95rem;
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.review-list-tags {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.review-tag-pill {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    background: var(--background);
+    border-radius: 6px;
+    color: var(--text-light);
+}
+
+.reviews-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-light);
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.academic-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    margin-top: 0.35rem;
+}
+
+/* Orders page polish */
+.orders-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.orders-page-header h2 {
+    color: var(--primary);
+}
+
+.orders-summary-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.summary-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    background: var(--card-bg);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+    box-shadow: var(--shadow);
+}
+
+.summary-badge-accent {
+    color: var(--primary);
+    border: 1px solid rgba(111, 78, 55, 0.15);
+}
+
+.orders-column-title {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.order-card {
+    border-left: 4px solid var(--primary);
+}
+
+.order-type-chip {
+    display: inline-block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    background: var(--background);
+    color: var(--text-light);
+    margin-left: 0.5rem;
+}
+
+@media (max-width: 900px) {
+    .orders-container {
+        grid-template-columns: 1fr;
+    }
+
+    .new-order-panel {
+        position: static;
+    }
+
+    .dashboard-card-wide {
+        grid-column: span 1;
+    }
+
+    .rewards-hero-card {
+        grid-template-columns: 1fr;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        justify-content: center;
+    }
+}
+
+/* API / pattern integration UI */
+.muted {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.dashboard-patterns {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px dashed rgba(111, 78, 55, 0.2);
+}
+
+.dashboard-patterns-title {
+    font-size: 1.15rem;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+}
+
+.dashboard-pattern-line {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin-bottom: 0.5rem;
+}
+
+.pattern-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-top: 1rem;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(111, 78, 55, 0.1);
+}
+
+.pattern-card h4 {
+    color: var(--primary);
+    margin-bottom: 0.35rem;
+    font-size: 1rem;
+}
+
+.pattern-card-sub {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+}
+
+.stamp-rule-name {
+    font-weight: 700;
+    color: var(--primary-dark);
+    font-size: 1.05rem;
+}
+
+.stamp-rule-desc {
+    font-size: 0.9rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+}
+
+.stamp-rule-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.stamp-rule-controls label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.stamp-rule-controls select {
+    min-width: 180px;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--background);
+    font-family: inherit;
+}
+
+.stamp-rule-history {
+    list-style: none;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.stamp-rule-history li {
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--background);
+}
+
+.stamp-rule-history time {
+    font-size: 0.72rem;
+    color: var(--text-light);
+}
+
+.stamp-rule-history-empty {
+    font-style: italic;
+}
+
+.passport-stamp-api {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--background);
+    border-radius: var(--radius-sm);
+}
+
+.passport-stamp-api label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.35rem;
+}
+
+.input-visit-total {
+    width: 100%;
+    max-width: 200px;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--background);
+    font-family: inherit;
+}
+
+.api-pattern-hint {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    background: var(--card-bg);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--secondary);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.product-type-tag {
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-light);
+    margin-top: 0.35rem;
+}
+
+.review-list-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--background);
+}
+
+.btn-review-action {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: white;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.btn-review-action-secondary {
+    background: transparent;
+    color: var(--primary);
+}
+
+.btn-review-action:hover {
+    opacity: 0.92;
+}
+
+.modal-content-wide {
+    max-width: 520px;
+}
+
+.review-history-body {
+    font-size: 0.88rem;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.review-history-ol {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.review-history-ol li {
+    margin-bottom: 0.65rem;
+}
+
+.review-history-preview {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-top: 0.25rem;
 }

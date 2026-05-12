@@ -330,6 +330,30 @@
       "type": "regular",
       "orderTotal": 4,
       "date": "2026-05-12"
+    },
+    {
+      "id": "s1778615234237",
+      "userId": "u3",
+      "cafeId": "c1",
+      "type": "regular",
+      "orderTotal": 4.7,
+      "date": "2026-05-12"
+    },
+    {
+      "id": "s1778615243922",
+      "userId": "u3",
+      "cafeId": "c5",
+      "type": "regular",
+      "orderTotal": 0,
+      "date": "2026-05-12"
+    },
+    {
+      "id": "s1778615250403",
+      "userId": "u3",
+      "cafeId": "c3",
+      "type": "regular",
+      "orderTotal": 0,
+      "date": "2026-05-12"
     }
   ],
   "orders": [
@@ -478,6 +502,22 @@
       "orderType": "dine-in",
       "status": "completed",
       "createdAt": "2026-05-12T19:31:26.579Z"
+    },
+    {
+      "id": "ord_1778615234234",
+      "userId": "u3",
+      "cafeId": "c1",
+      "products": [
+        {
+          "name": "Latte Personalizado",
+          "price": 4.7,
+          "description": "Latte Personalizado (medium) - $4.7"
+        }
+      ],
+      "total": 4.7,
+      "orderType": "dine-in",
+      "status": "completed",
+      "createdAt": "2026-05-12T19:47:14.234Z"
     }
   ],
   "reviews": [

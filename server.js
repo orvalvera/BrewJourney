@@ -85,6 +85,18 @@ function apiAuthGate(req, res, next) {
 
 app.use(apiAuthGate);
 
+function requireCurrentUser(req, res, requestedUserId) {
+    if (!requestedUserId) {
+        res.status(400).json({ error: 'Usuario requerido' });
+        return false;
+    }
+    if (requestedUserId !== req.user?.sub) {
+        res.status(403).json({ error: 'Acceso denegado para este usuario' });
+        return false;
+    }
+    return true;
+}
+
 // Contexto de estrategia de sellos (singleton)
 const stampRuleContext = new StampRuleContext(new BasicStampRule());
 
@@ -173,6 +185,8 @@ app.get('/api/users', (req, res) => {
 });
 
 app.get('/api/users/:id', (req, res) => {
+    if (!requireCurrentUser(req, res, req.params.id)) return;
+
     const user = database.getUserById(req.params.id);
     if (!user) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -337,6 +351,8 @@ app.get('/api/products/types', (req, res) => {
 
 // --- Sellos (Strategy Pattern) ---
 app.get('/api/stamps/:userId', (req, res) => {
+    if (!requireCurrentUser(req, res, req.params.userId)) return;
+
     const stamps = database.getStampsByUser(req.params.userId);
     const cafes = database.getCafes();
     
@@ -354,6 +370,7 @@ app.get('/api/stamps/:userId', (req, res) => {
 
 app.post('/api/stamps', async (req, res) => {
     const { userId, cafeId, orderTotal } = req.body;
+    if (!requireCurrentUser(req, res, userId)) return;
     
     const user = database.getUserById(userId);
     const cafe = database.getCafeById(cafeId);
@@ -455,10 +472,10 @@ app.get('/api/stamps/rule/current', (req, res) => {
 // --- Órdenes (Factory Pattern) ---
 app.get('/api/orders', (req, res) => {
     const { userId } = req.query;
+    const requestedUserId = userId || req.user.sub;
+    if (!requireCurrentUser(req, res, requestedUserId)) return;
     
-    let orders = userId 
-        ? database.getOrdersByUser(userId)
-        : database.getOrders();
+    let orders = database.getOrdersByUser(requestedUserId);
     
     const cafes = database.getCafes();
     
@@ -475,6 +492,7 @@ app.get('/api/orders', (req, res) => {
 
 app.post('/api/orders', async (req, res) => {
     const { userId, cafeId, items, type = 'dine-in' } = req.body;
+    if (!requireCurrentUser(req, res, userId)) return;
     
     const user = database.getUserById(userId);
     const cafe = database.getCafeById(cafeId);
@@ -534,6 +552,7 @@ app.post('/api/orders', async (req, res) => {
 // --- Reseñas (Memento Pattern) ---
 app.get('/api/reviews', (req, res) => {
     const { cafeId, userId } = req.query;
+    if (userId && !requireCurrentUser(req, res, userId)) return;
     
     let reviews;
     if (cafeId) {
@@ -579,6 +598,7 @@ app.get('/api/reviews/:cafeId', (req, res) => {
 
 app.post('/api/reviews', async (req, res) => {
     const { userId, cafeId, text, rating, tags = [] } = req.body;
+    if (!requireCurrentUser(req, res, userId)) return;
     
     const user = database.getUserById(userId);
     const cafe = database.getCafeById(cafeId);
@@ -629,6 +649,7 @@ app.put('/api/reviews/:reviewId', async (req, res) => {
     if (!review) {
         return res.status(404).json({ error: 'Reseña no encontrada' });
     }
+    if (!requireCurrentUser(req, res, review.userId)) return;
     
     // Guardar snapshot antes de modificar (Memento)
     await database.saveReviewSnapshot(reviewId, review, 'Antes de edición');
@@ -651,6 +672,11 @@ app.put('/api/reviews/:reviewId', async (req, res) => {
 
 app.post('/api/reviews/:reviewId/undo', async (req, res) => {
     const { reviewId } = req.params;
+    const review = database.getReviewById(reviewId);
+    if (!review) {
+        return res.status(404).json({ error: 'Reseña no encontrada' });
+    }
+    if (!requireCurrentUser(req, res, review.userId)) return;
     
     const history = database.getReviewHistory(reviewId);
     if (history.length < 2) {
@@ -680,6 +706,12 @@ app.post('/api/reviews/:reviewId/undo', async (req, res) => {
 
 app.get('/api/reviews/:reviewId/history', (req, res) => {
     const { reviewId } = req.params;
+    const review = database.getReviewById(reviewId);
+    if (!review) {
+        return res.status(404).json({ error: 'Reseña no encontrada' });
+    }
+    if (!requireCurrentUser(req, res, review.userId)) return;
+
     const history = database.getReviewHistory(reviewId);
     
     res.json({
@@ -726,6 +758,8 @@ app.get('/api/info', (req, res) => {
 
 // --- Estadísticas del usuario ---
 app.get('/api/stats/:userId', (req, res) => {
+    if (!requireCurrentUser(req, res, req.params.userId)) return;
+
     const stats = database.getUserStats(req.params.userId);
     res.json(stats);
 });
